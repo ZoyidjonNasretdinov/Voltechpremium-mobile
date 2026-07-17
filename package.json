@@ -1,0 +1,9 @@
+{
+  "name": "voltech-mobile",
+  "version": "1.0.0",
+  "description": "Flutter web shortcut for running on port 3001",
+  "scripts": {
+    "dev": "flutter run -d chrome --web-port=3001",
+    "build": "flutter build web"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Web (Port 3001)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-port=3001"
+      ]
+    },
+    {
+      "name": "Flutter (Default)",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}
