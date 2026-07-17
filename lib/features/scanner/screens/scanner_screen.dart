@@ -61,15 +61,97 @@ class _ScannerScreenState extends State<ScannerScreen> {
         
         if (response['success']) {
           if (token != null) {
-            final points = response['data']['pointsEarned'] ?? 0;
+            final points = response['data']['pointsEarned'] ?? response['data']['bonusPoints'] ?? 0;
             final message = response['data']['message'] ?? 'QR kod muvaffaqiyatli faollashtirildi!';
             
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$message (+$points ball)'),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3),
-              ),
+            showDialog(
+              context: context,
+              builder: (ctx) => Dialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check_circle, size: 48, color: Colors.green),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Tabriklaymiz!",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        message,
+                        style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.green.shade500, Colors.lightGreen.shade400],
+                          ),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ]
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.stars, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              "+$points Ball",
+                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: const Text("Ajoyib!", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             );
           } else {
             // Unregistered user scanning
@@ -77,22 +159,161 @@ class _ScannerScreenState extends State<ScannerScreen> {
             final productName = data['name'] ?? 'Mahsulot';
             final desc = data['description'] ?? '';
             final points = data['bonusPoints'] ?? 0;
+            final price = data['price'] ?? 0;
+            final scanCount = data['scanCount'] ?? 0;
             
             showDialog(
               context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text("QR Kod ma'lumoti", style: TextStyle(fontWeight: FontWeight.bold)),
-                content: Text("Mahsulot: $productName\nTa'rif: $desc\nBonus: +$points ball\n\nUshbu ballarni hisobingizga qo'shish uchun tizimga kiring!"),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Yopish")),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.pop(context); // Go back to LoginScreen
-                    }, 
-                    child: const Text("Tizimga kirish")
+              builder: (ctx) => Dialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                ]
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon/Header
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.qr_code_scanner, size: 48, color: Theme.of(context).colorScheme.primary),
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // Product Name
+                      Text(
+                        productName,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Description
+                      if (desc.isNotEmpty)
+                        Text(
+                          desc,
+                          style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
+                          textAlign: TextAlign.center,
+                        ),
+                      const SizedBox(height: 20),
+                      
+                      // Info row (Price & Scan Count)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Column(
+                              children: [
+                                Text("Narxi", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
+                                const SizedBox(height: 4),
+                                Text("$price UZS", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(width: 1, height: 40, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
+                            Column(
+                              children: [
+                                Text("Skanerlangan", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
+                                const SizedBox(height: 4),
+                                Text("$scanCount marta", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      // Points Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.orange.shade400, Colors.deepOrange],
+                          ),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ]
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.stars, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              "+$points Ball",
+                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      Text(
+                        "Ushbu ballarni hisobingizga qo'shish uchun tizimga kiring!",
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                side: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
+                              ),
+                              child: Text("Yopish", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.pop(context); // Go back to LoginScreen
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: const Text("Tizimga kirish", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               )
             );
           }
