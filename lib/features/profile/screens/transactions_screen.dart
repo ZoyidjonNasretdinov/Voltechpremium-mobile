@@ -83,7 +83,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           String formattedDate = '';
                           try {
                             if (dateStr.isNotEmpty) {
-                              final date = DateTime.parse(dateStr).toLocal();
+                              String dStr = dateStr;
+                              if (!dStr.endsWith('Z')) dStr += 'Z';
+                              final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
                               formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
                             }
                           } catch (e) {

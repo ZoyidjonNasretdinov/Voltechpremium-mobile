@@ -61,8 +61,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
         
         if (response['success']) {
           if (token != null) {
-            final points = response['data']['pointsEarned'] ?? response['data']['bonusPoints'] ?? 0;
+            num rawPoints = response['data']['pointsEarned'] ?? response['data']['bonusPoints'] ?? response['data']['points'] ?? response['data']['amount'] ?? 0;
+            int points = rawPoints.toInt();
             final message = response['data']['message'] ?? 'QR kod muvaffaqiyatli faollashtirildi!';
+            
+            if (points == 0 && message != null) {
+              final match = RegExp(r'\b(\d+)\b').firstMatch(message.toString());
+              if (match != null) {
+                points = int.tryParse(match.group(1) ?? '0') ?? 0;
+              }
+            }
             
             showDialog(
               context: context,
@@ -412,7 +420,7 @@ class QrScannerOverlayShape extends ShapeBorder {
   const QrScannerOverlayShape({
     this.borderColor = Colors.red,
     this.borderWidth = 3.0,
-    this.overlayColor = const Color.fromRGBO(0, 0, 0, 150),
+    this.overlayColor = const Color.fromRGBO(0, 0, 0, 0.5),
     this.borderRadius = 0,
     this.borderLength = 40,
     this.cutOutSize = 250,
