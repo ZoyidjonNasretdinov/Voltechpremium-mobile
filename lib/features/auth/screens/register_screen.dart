@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/api_service.dart';
 import 'verify_otp_screen.dart';
+import '../../profile/screens/policy_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedRegion;
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _acceptedPrivacyPolicy = false;
   final ApiService _apiService = ApiService();
 
   final List<String> _regions = [
@@ -140,7 +142,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
+            
+            // Maxfiylik Siyosati
+            Row(
+              children: [
+                Checkbox(
+                  value: _acceptedPrivacyPolicy,
+                  onChanged: (val) {
+                    setState(() {
+                      _acceptedPrivacyPolicy = val ?? false;
+                    });
+                  },
+                  activeColor: theme.colorScheme.primary,
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PolicyScreen()));
+                    },
+                    child: Text.rich(
+                      TextSpan(
+                        text: "Men ",
+                        children: [
+                          TextSpan(
+                            text: "Maxfiylik siyosati",
+                            style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline, fontWeight: FontWeight.bold),
+                          ),
+                          const TextSpan(text: " va Foydalanish shartlariga roziman"),
+                        ],
+                      ),
+                      style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
             
             // Saqlash / Tasdiqlash
             ElevatedButton(
@@ -157,6 +195,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Barcha maydonlarni to'ldiring!"),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return;
+                }
+
+                if (!_acceptedPrivacyPolicy) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Iltimos, Maxfiylik siyosatiga rozi bo'ling!"),
                       backgroundColor: Colors.redAccent,
                     ),
                   );

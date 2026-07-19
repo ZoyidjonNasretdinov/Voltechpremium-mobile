@@ -1,23 +1,39 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import '../main.dart';
 
 class ApiService {
   static const String baseUrl = 'https://voltechpremiumbackend-api-production.up.railway.app/api';
+  final _secureStorage = const FlutterSecureStorage();
 
   Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    return await _secureStorage.read(key: 'token');
   }
 
   Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
+    await _secureStorage.write(key: 'token', value: token);
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    await _secureStorage.delete(key: 'token');
+  }
+
+  Future<bool> _hasConnection() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult.contains(ConnectivityResult.none)) return false;
+      return true;
+    } catch (_) { return true; }
+  }
+
+  void _handle401() async {
+    await logout();
+    if (navigatorKey.currentContext != null) {
+      Navigator.of(navigatorKey.currentContext!).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
   }
 
   dynamic _safeDecode(String body) {
@@ -31,6 +47,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -39,6 +56,10 @@ class ApiService {
           'password': password,
         }),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
@@ -56,11 +77,16 @@ class ApiService {
 
   Future<Map<String, dynamic>> sendSms(String phone) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/send-sms'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phoneNumber': phone}),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': _safeDecode(response.body)};
       } else {
@@ -73,11 +99,16 @@ class ApiService {
 
   Future<Map<String, dynamic>> verifySms(String phone, String code) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/verify-sms'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phoneNumber': phone, 'verificationCode': code}),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
         if (data is Map && data['accessToken'] != null) {
@@ -94,11 +125,16 @@ class ApiService {
 
   Future<Map<String, dynamic>> forgotPasswordSendSms(String phone) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/forgot-password/send-sms'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phoneNumber': phone}),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': _safeDecode(response.body)};
       } else {
@@ -111,11 +147,16 @@ class ApiService {
 
   Future<Map<String, dynamic>> forgotPasswordReset(String phone, String code, String newPassword) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/forgot-password/reset'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phoneNumber': phone, 'verificationCode': code, 'newPassword': newPassword}),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': _safeDecode(response.body)};
       } else {
@@ -128,6 +169,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getProfile() async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -138,6 +180,10 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200) {
         return {'success': true, 'data': _safeDecode(response.body)};
@@ -179,6 +225,10 @@ class ApiService {
           'district': district,
         }),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200) {
         return {'success': true, 'data': _safeDecode(response.body)};
@@ -219,6 +269,10 @@ class ApiService {
           'district': district,
         }),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
@@ -241,6 +295,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> activateQR(String qrCode) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -252,6 +307,10 @@ class ApiService {
         },
         body: jsonEncode({'qrCode': qrCode}),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -271,9 +330,14 @@ class ApiService {
 
   Future<Map<String, dynamic>> checkPublicQR(String qrCode) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final response = await http.get(
         Uri.parse('$baseUrl/public/qr/$qrCode'),
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'data': jsonDecode(response.body)};
       } else {
@@ -291,6 +355,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getPurchaseHistory() async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -301,6 +366,10 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200) {
         return {'success': true, 'data': _safeDecode(response.body)};
@@ -314,6 +383,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getAllGifts({int page = 0, int size = 50}) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       // Sovg'alar ro'yxatini olish uchun token kerak bo'lsa
       final headers = {'Content-Type': 'application/json'};
@@ -325,6 +395,10 @@ class ApiService {
         Uri.parse('$baseUrl/v1/purchase/gifts?page=$page&size=$size'),
         headers: headers,
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200) {
         return {'success': true, 'data': _safeDecode(response.body)};
@@ -338,6 +412,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> purchaseGift(int giftId) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -348,6 +423,10 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true};
@@ -369,6 +448,7 @@ class ApiService {
   // TransactionHistoryDto: { type: "EARNED"|"SPENT", description: string, points: int, date: datetime }
   Future<Map<String, dynamic>> getTransactionHistory({int page = 0, int size = 20}) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -379,6 +459,10 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200) {
         final data = _safeDecode(response.body);
@@ -399,6 +483,7 @@ class ApiService {
   // POST /api/v1/profile/image
   Future<Map<String, dynamic>> uploadProfileImage(String filePath) async {
     try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -408,6 +493,11 @@ class ApiService {
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
 
       if (response.statusCode == 200) {
         final data = _safeDecode(response.body);
@@ -424,5 +514,40 @@ class ApiService {
       return {'success': false, 'message': 'Tarmoq xatosi: $e'};
     }
   }
-}
 
+  // DELETE /api/v1/profile
+  Future<Map<String, dynamic>> deleteAccount() async {
+    try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      final token = await getToken();
+      if (token == null) return {'success': false, 'message': 'Token topilmadi'};
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/v1/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        await logout(); // Delete token after account is deleted
+        return {'success': true, 'message': 'Hisobingiz muvaffaqiyatli o\'chirildi'};
+      } else {
+        try {
+          final errorData = jsonDecode(response.body);
+          return {'success': false, 'message': errorData['message'] ?? 'Hisobni o\'chirishda xatolik'};
+        } catch (_) {
+          return {'success': false, 'message': 'Hisobni o\'chirishda xatolik'};
+        }
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+    }
+  }
+}

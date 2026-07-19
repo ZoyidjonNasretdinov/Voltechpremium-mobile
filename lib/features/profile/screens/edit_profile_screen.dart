@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
@@ -173,7 +175,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   shape: BoxShape.circle,
                                   image: _currentImageUrl != null && _currentImageUrl!.isNotEmpty
                                       ? DecorationImage(
-                                          image: NetworkImage("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/$_currentImageUrl"),
+                                          image: CachedNetworkImageProvider("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/$_currentImageUrl"),
                                           fit: BoxFit.cover,
                                         )
                                       : null,
@@ -249,7 +251,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          backgroundColor: theme.scaffoldBackgroundColor,
+                          title: Text('delete_account'.tr, style: TextStyle(color: theme.colorScheme.onSurface)),
+                          content: Text("Haqiqatan ham hisobingizni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.", style: TextStyle(color: theme.colorScheme.onSurface)),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: Text('cancel'.tr, style: const TextStyle(color: Colors.grey)),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(dialogContext);
+                                setState(() => _isLoading = true);
+                                final response = await _apiService.deleteAccount();
+                                if (!mounted || !context.mounted) return;
+                                setState(() => _isLoading = false);
+                                if (response['success'] == true) {
+                                  // Navigate to login or splash and clear history
+                                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Xatolik yuz berdi"), backgroundColor: Colors.redAccent));
+                                }
+                              },
+                              child: Text('delete_account'.tr, style: const TextStyle(color: Colors.redAccent)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.redAccent,
                       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),

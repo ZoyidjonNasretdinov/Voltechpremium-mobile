@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../main.dart';
 import '../../auth/screens/login_screen.dart';
@@ -114,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 shape: BoxShape.circle,
                                 image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
                                     ? DecorationImage(
-                                        image: NetworkImage("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/${_profileData!['imageUrl']}"),
+                                        image: CachedNetworkImageProvider("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/${_profileData!['imageUrl']}"),
                                         fit: BoxFit.cover,
                                       )
                                     : null,

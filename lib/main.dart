@@ -4,8 +4,10 @@ import 'core/localization/app_localizations.dart';
 import 'features/splash/screens/splash_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/scanner/screens/scanner_screen.dart';
+import 'features/auth/screens/login_screen.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   runApp(const LoyaltyApp());
@@ -28,6 +30,10 @@ class LoyaltyApp extends StatelessWidget {
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: currentMode,
+              navigatorKey: navigatorKey,
+              routes: {
+                '/login': (context) => const LoginScreen(),
+              },
               home: const SplashScreen(),
             );
           },
