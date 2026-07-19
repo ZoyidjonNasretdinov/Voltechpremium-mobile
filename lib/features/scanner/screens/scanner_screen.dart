@@ -47,6 +47,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       HapticFeedback.heavyImpact();
       
       final qrCode = rawValue;
+      _processQrCode(qrCode);
+    }
+  }
+
+  Future<void> _processQrCode(String qrCode) async {
         
         // Backendga so'rov yuborish
         final token = await _apiService.getToken();
@@ -326,12 +331,32 @@ class _ScannerScreenState extends State<ScannerScreen> {
             );
           }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response['message'] ?? 'Xatolik yuz berdi'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
+          final errorMessage = response['message']?.toString() ?? 'Xatolik yuz berdi';
+          final isAdminContactNeeded = errorMessage.toLowerCase().contains('ishlatilgan') || 
+                                       errorMessage.toLowerCase().contains('foydalanilgan') || 
+                                       errorMessage.toLowerCase().contains('used');
+          
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text("Xatolik", style: TextStyle(color: Colors.red)),
+                ],
+              ),
+              content: Text(isAdminContactNeeded 
+                  ? "$errorMessage\n\nBu QR kod oldin foydalanilgan bo'lishi mumkin. Iltimos Admin bilan bog'laning."
+                  : errorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text("Tushunarli"),
+                )
+              ],
+            )
           );
         }
 
@@ -344,7 +369,46 @@ class _ScannerScreenState extends State<ScannerScreen> {
             });
           }
         });
-    }
+  }
+
+  void _showManualEntryDialog() {
+    final TextEditingController _codeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("QR kodni qo'lda kiritish"),
+        content: TextField(
+          controller: _codeController,
+          decoration: const InputDecoration(
+            hintText: "QR kod tagidagi raqamni yozing",
+            border: OutlineInputBorder(),
+          ),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (val) {
+            Navigator.pop(ctx);
+            if (val.trim().isNotEmpty) {
+              _processQrCode(val.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Bekor qilish"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              final code = _codeController.text.trim();
+              if (code.isNotEmpty) {
+                _processQrCode(code);
+              }
+            },
+            child: const Text("Tasdiqlash"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -396,6 +460,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     borderLength: 40,
                     borderWidth: 8,
                     cutOutSize: scanWindowSize,
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 80.0),
+                  child: ElevatedButton.icon(
+                    onPressed: _showManualEntryDialog,
+                    icon: const Icon(Icons.keyboard),
+                    label: const Text("Qo'lda kiritish"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                    ),
                   ),
                 ),
               ),

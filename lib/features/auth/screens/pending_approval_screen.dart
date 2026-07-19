@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_service.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../../main.dart';
@@ -13,6 +14,18 @@ class PendingApprovalScreen extends StatefulWidget {
 class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
+  final String _adminPhone = "+998901234567"; // O'zgartirishingiz mumkin
+
+  Future<void> _launchPhone() async {
+    final Uri url = Uri.parse('tel:$_adminPhone');
+    if (!await launchUrl(url)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Telefon raqamni ochib bo'lmadi"), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
 
   Future<void> _checkStatus() async {
     setState(() => _isLoading = true);
@@ -92,7 +105,36 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      "Tasdiqlashni tezlashtirish uchun Admin bilan bog'lanishingiz mumkin:",
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _launchPhone,
+                      icon: const Icon(Icons.phone),
+                      label: Text(_adminPhone),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _isLoading ? null : _checkStatus,
                 child: _isLoading
