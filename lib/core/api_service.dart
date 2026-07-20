@@ -47,7 +47,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -77,7 +77,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> sendSms(String phone) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/send-sms'),
         headers: {'Content-Type': 'application/json'},
@@ -99,7 +99,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> verifySms(String phone, String code) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/verify-sms'),
         headers: {'Content-Type': 'application/json'},
@@ -125,7 +125,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> forgotPasswordSendSms(String phone) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/forgot-password/send-sms'),
         headers: {'Content-Type': 'application/json'},
@@ -147,7 +147,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> forgotPasswordReset(String phone, String code, String newPassword) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await http.post(
         Uri.parse('$baseUrl/auth/forgot-password/reset'),
         headers: {'Content-Type': 'application/json'},
@@ -169,7 +169,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getProfile() async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -293,9 +293,46 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> submitComplaint(String qrCode, String message) async {
+    try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      final token = await getToken();
+      if (token == null) return {'success': false, 'message': 'Token topilmadi'};
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/v1/complaints'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'qrCode': qrCode,
+          'message': message,
+        }),
+      );
+      if (response.statusCode == 401) {
+        _handle401();
+        return {"success": false, "message": "Sessiya tugadi"};
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'message': 'Shikoyat yuborildi'};
+      } else {
+        try {
+          final errorData = jsonDecode(response.body);
+          return {'success': false, 'message': errorData['message'] ?? 'Shikoyat yuborishda xatolik'};
+        } catch (_) {
+          return {'success': false, 'message': 'Shikoyat yuborishda xatolik (Status: ${response.statusCode})'};
+        }
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+    }
+  }
+
   Future<Map<String, dynamic>> activateQR(String qrCode) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -330,7 +367,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> checkPublicQR(String qrCode) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await http.get(
         Uri.parse('$baseUrl/public/qr/$qrCode'),
       );
@@ -355,7 +392,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getPurchaseHistory() async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -383,7 +420,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getAllGifts({int page = 0, int size = 50}) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       // Sovg'alar ro'yxatini olish uchun token kerak bo'lsa
       final headers = {'Content-Type': 'application/json'};
@@ -412,7 +449,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> purchaseGift(int giftId) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -448,7 +485,7 @@ class ApiService {
   // TransactionHistoryDto: { type: "EARNED"|"SPENT", description: string, points: int, date: datetime }
   Future<Map<String, dynamic>> getTransactionHistory({int page = 0, int size = 20}) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -483,7 +520,7 @@ class ApiService {
   // POST /api/v1/profile/image
   Future<Map<String, dynamic>> uploadProfileImage(String filePath) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog\'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
@@ -545,6 +582,29 @@ class ApiService {
         } catch (_) {
           return {'success': false, 'message': 'Hisobni o\'chirishda xatolik'};
         }
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+    }
+  // GET /api/v1/admin/phone-numbers
+  Future<Map<String, dynamic>> getAdminPhoneNumbers() async {
+    try {
+      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      // We may or may not need a token depending on if it's public. Let's send it just in case.
+      final token = await getToken();
+      final headers = {'Content-Type': 'application/json'};
+      if (token != null) headers['Authorization'] = 'Bearer $token';
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/v1/admin/phone-numbers'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = _safeDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        return {'success': false, 'message': 'Raqamlarni yuklashda xatolik'};
       }
     } catch (e) {
       return {'success': false, 'message': 'Tarmoq xatosi: $e'};

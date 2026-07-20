@@ -338,24 +338,71 @@ class _ScannerScreenState extends State<ScannerScreen> {
           
           showDialog(
             context: context,
-            builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text("Xatolik", style: TextStyle(color: Colors.red)),
-                ],
+            builder: (ctx) => Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text("Xatolik", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
+                    const SizedBox(height: 12),
+                    Text(
+                      isAdminContactNeeded ? "$errorMessage\n\nBu QR kod oldin foydalanilgan bo'lishi mumkin." : errorMessage,
+                      style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    if (isAdminContactNeeded)
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _showComplaintDialog(qrCode);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.orange,
+                            side: const BorderSide(color: Colors.orange),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text("Adminga shikoyat qilish", style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    if (isAdminContactNeeded) const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: const Text("Tushunarli", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              content: Text(isAdminContactNeeded 
-                  ? "$errorMessage\n\nBu QR kod oldin foydalanilgan bo'lishi mumkin. Iltimos Admin bilan bog'laning."
-                  : errorMessage),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text("Tushunarli"),
-                )
-              ],
             )
           );
         }
@@ -372,41 +419,194 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   void _showManualEntryDialog() {
-    final TextEditingController _codeController = TextEditingController();
+    final TextEditingController codeController = TextEditingController();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("QR kodni qo'lda kiritish"),
-        content: TextField(
-          controller: _codeController,
-          decoration: const InputDecoration(
-            hintText: "QR kod tagidagi raqamni yozing",
-            border: OutlineInputBorder(),
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10)),
+            ],
           ),
-          textInputAction: TextInputAction.done,
-          onSubmitted: (val) {
-            Navigator.pop(ctx);
-            if (val.trim().isNotEmpty) {
-              _processQrCode(val.trim());
-            }
-          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: Icon(Icons.keyboard, size: 40, color: Theme.of(context).colorScheme.primary),
+              ),
+              const SizedBox(height: 20),
+              const Text("Qo'lda kiritish", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text("QR kod tagidagi raqamni yozing", style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+              const SizedBox(height: 20),
+              TextField(
+                controller: codeController,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                textInputAction: TextInputAction.done,
+                onSubmitted: (val) {
+                  Navigator.pop(ctx);
+                  if (val.trim().isNotEmpty) {
+                    _processQrCode(val.trim());
+                  }
+                },
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                      child: Text("Bekor qilish", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        final code = codeController.text.trim();
+                        if (code.isNotEmpty) _processQrCode(code);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: const Text("Tasdiqlash", style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Bekor qilish"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              final code = _codeController.text.trim();
-              if (code.isNotEmpty) {
-                _processQrCode(code);
-              }
-            },
-            child: const Text("Tasdiqlash"),
-          ),
-        ],
+      ),
+    );
+  }
+
+  void _showComplaintDialog(String qrCode) {
+    final TextEditingController messageController = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10)),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.report_problem, size: 40, color: Colors.orange),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text("Shikoyat qoldirish", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12)
+                    ),
+                    child: Text("QR Kod: $qrCode", style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: messageController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: "Muammoni qisqacha yozing (ixtiyoriy)",
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                          style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                          child: Text("Bekor qilish", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: isSubmitting ? null : () async {
+                            setState(() => isSubmitting = true);
+                            final msg = messageController.text.trim().isEmpty 
+                                ? "Ushbu QR kod ishlatilgan deb xato bermoqda." 
+                                : messageController.text.trim();
+                                
+                            final res = await _apiService.submitComplaint(qrCode, msg);
+                            setState(() => isSubmitting = false);
+                            
+                            if (!ctx.mounted) return;
+                            Navigator.pop(ctx);
+                            
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(res['message'] ?? (res['success'] ? "Shikoyat yuborildi" : "Xatolik")),
+                                backgroundColor: res['success'] ? Colors.green : Colors.red,
+                              )
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: isSubmitting 
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Text("Yuborish", style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
       ),
     );
   }

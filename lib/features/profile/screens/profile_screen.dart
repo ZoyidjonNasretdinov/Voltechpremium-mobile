@@ -7,6 +7,7 @@ import '../../auth/screens/login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'transactions_screen.dart';
 import 'faq_screen.dart';
+import 'support_screen.dart';
 import 'policy_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
@@ -272,6 +273,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       subTextColor: subTextColor,
                       onTap: () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const FaqScreen()));
+                      },
+                    ),
+                    _buildDivider(subTextColor),
+                    _buildSettingsTile(
+                      icon: CupertinoIcons.phone_circle,
+                      title: "Biz bilan bog'lanish",
+                      textColor: textColor,
+                      subTextColor: subTextColor,
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportScreen()));
                       },
                     ),
                     _buildDivider(subTextColor),

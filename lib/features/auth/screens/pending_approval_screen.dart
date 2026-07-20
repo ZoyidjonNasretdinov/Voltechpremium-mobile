@@ -14,10 +14,30 @@ class PendingApprovalScreen extends StatefulWidget {
 class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
   bool _isLoading = false;
   final ApiService _apiService = ApiService();
-  final String _adminPhone = "+998901234567"; // O'zgartirishingiz mumkin
+  List<dynamic> _phoneNumbers = [];
+  bool _isLoadingPhones = true;
 
-  Future<void> _launchPhone() async {
-    final Uri url = Uri.parse('tel:$_adminPhone');
+  @override
+  void initState() {
+    super.initState();
+    _loadNumbers();
+  }
+
+  Future<void> _loadNumbers() async {
+    final response = await _apiService.getAdminPhoneNumbers();
+    if (response['success'] == true && mounted) {
+      final List<dynamic> allNumbers = response['data'] ?? [];
+      setState(() {
+        _phoneNumbers = allNumbers.where((n) => n['active'] == true).toList();
+        _isLoadingPhones = false;
+      });
+    } else if (mounted) {
+      setState(() => _isLoadingPhones = false);
+    }
+  }
+
+  Future<void> _launchPhone(String phone) async {
+    final Uri url = Uri.parse('tel:$phone');
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -121,16 +141,25 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
                       style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface),
                     ),
                     const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: _launchPhone,
-                      icon: const Icon(Icons.phone),
-                      label: Text(_adminPhone),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                      ),
-                    ),
+                    if (_isLoadingPhones)
+                      const SizedBox(height: 24, width: 24, child: CircularProgressIndicator())
+                    else if (_phoneNumbers.isEmpty)
+                      const Text("Hozircha admin raqamlari mavjud emas")
+                    else
+                      ..._phoneNumbers.map((phoneObj) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: ElevatedButton.icon(
+                          onPressed: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
+                          icon: const Icon(Icons.phone),
+                          label: Text("${phoneObj['name'] ?? 'Admin'} - ${phoneObj['phoneNumber'] ?? ''}"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            minimumSize: const Size(double.infinity, 44),
+                          ),
+                        ),
+                      )),
                   ],
                 ),
               ),
