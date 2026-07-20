@@ -268,7 +268,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         String formattedDate = '';
                         if (dateStr != null) {
                           try {
-                            final date = DateTime.parse(dateStr);
+                            String dStr = dateStr;
+                            if (!dStr.endsWith('Z')) dStr += 'Z';
+                            final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
                             formattedDate = DateFormat('dd.MM.yyyy, HH:mm').format(date);
                           } catch (e) {
                             formattedDate = dateStr.toString();
