@@ -184,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildDivider(subTextColor),
                     _buildSettingsTile(
                       icon: CupertinoIcons.list_bullet,
-                      title: 'Ballar tarixi',
+                      title: 'points_history'.tr,
                       textColor: textColor,
                       subTextColor: subTextColor,
                       onTap: () {
@@ -278,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildDivider(subTextColor),
                     _buildSettingsTile(
                       icon: CupertinoIcons.phone_circle,
-                      title: "Biz bilan bog'lanish",
+                      title: 'contact_us'.tr,
                       textColor: textColor,
                       subTextColor: subTextColor,
                       onTap: () {

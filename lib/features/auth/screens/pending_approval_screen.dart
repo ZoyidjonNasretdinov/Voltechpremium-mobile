@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_service.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../../main.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class PendingApprovalScreen extends StatefulWidget {
   const PendingApprovalScreen({super.key});
@@ -41,7 +42,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Telefon raqamni ochib bo'lmadi"), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text('cant_open_phone'.tr), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -63,17 +64,21 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Arizangiz hali ko'rib chiqilmoqda"),
+          SnackBar(
+            content: Text('application_under_review'.tr),
             backgroundColor: Colors.orange,
           ),
         );
       }
     } else {
       if (!mounted) return;
+      if (response['message'] == 'Token topilmadi' || response['message'] == 'Sessiya tugadi') {
+        await _logout();
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(response['message'] ?? "Xatolik yuz berdi. Iltimos, qayta urinib ko'ring."),
+          content: Text(response['message'] ?? 'error'.tr),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -109,7 +114,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Arizangiz ko\'rib chiqilmoqda',
+                'pending_approval_title'.tr,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -118,7 +123,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Ro\'yxatdan o\'tganingiz uchun rahmat! Ma\'muriyat profilingizni tasdiqlaganidan so\'ng tizimdan foydalanishingiz mumkin bo\'ladi.',
+                'pending_approval_desc'.tr,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
@@ -136,7 +141,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
                 child: Column(
                   children: [
                     Text(
-                      "Tasdiqlashni tezlashtirish uchun Admin bilan bog'lanishingiz mumkin:",
+                      'contact_admin_desc'.tr,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface),
                     ),
@@ -144,7 +149,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
                     if (_isLoadingPhones)
                       const SizedBox(height: 24, width: 24, child: CircularProgressIndicator())
                     else if (_phoneNumbers.isEmpty)
-                      const Text("Hozircha admin raqamlari mavjud emas")
+                      Text('no_admin_phones'.tr)
                     else
                       ..._phoneNumbers.map((phoneObj) => Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -168,12 +173,12 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
                 onPressed: _isLoading ? null : _checkStatus,
                 child: _isLoading
                     ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                    : const Text('Holatni tekshirish'),
+                    : Text('check_status_btn'.tr),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _logout,
-                child: const Text('Hisobdan chiqish'),
+                child: Text('logout'.tr),
               ),
               const Spacer(),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/api_service.dart';
+import '../../../core/localization/app_localizations.dart';
 import 'verify_otp_screen.dart';
 import '../../profile/screens/policy_screen.dart';
 
@@ -45,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Ro'yxatdan o'tish"),
+        title: Text('registration'.tr),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -53,14 +54,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Yangi Usta profili',
+              'new_master_profile'.tr,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              "Barcha ma'lumotlarni to'g'ri kiriting",
+              'enter_correct_data'.tr,
               style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 32),
@@ -68,14 +69,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Ism
             TextField(
               controller: _firstNameController,
-              decoration: const InputDecoration(labelText: 'Ism', prefixIcon: Icon(Icons.person)),
+              decoration: InputDecoration(labelText: 'first_name'.tr, prefixIcon: const Icon(Icons.person)),
             ),
             const SizedBox(height: 16),
             
             // Familiya
             TextField(
               controller: _lastNameController,
-              decoration: const InputDecoration(labelText: 'Familiya', prefixIcon: Icon(Icons.person_outline)),
+              decoration: InputDecoration(labelText: 'last_name'.tr, prefixIcon: const Icon(Icons.person_outline)),
             ),
             const SizedBox(height: 16),
             
@@ -83,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             TextField(
               controller: _ageController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Yoshingiz', prefixIcon: Icon(Icons.calendar_today)),
+              decoration: InputDecoration(labelText: 'age'.tr, prefixIcon: const Icon(Icons.calendar_today)),
             ),
             const SizedBox(height: 16),
             
@@ -91,14 +92,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Telefon raqam', prefixIcon: Icon(Icons.phone)),
+              decoration: InputDecoration(labelText: 'phone'.tr, prefixIcon: const Icon(Icons.phone)),
             ),
             const SizedBox(height: 16),
             
             // Viloyat (Dropdown)
             DropdownButtonFormField<String>(
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Viloyatni tanlang', prefixIcon: Icon(Icons.location_on)),
+              decoration: InputDecoration(labelText: 'select_region'.tr, prefixIcon: const Icon(Icons.location_on)),
               dropdownColor: theme.colorScheme.surface,
               initialValue: _selectedRegion,
               items: _regions.map((String region) {
@@ -118,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Tuman (District)
             TextField(
               controller: _districtController,
-              decoration: const InputDecoration(labelText: 'Tuman (Yashash manzili)', prefixIcon: Icon(Icons.map)),
+              decoration: InputDecoration(labelText: 'district'.tr, prefixIcon: const Icon(Icons.map)),
             ),
             const SizedBox(height: 16),
             
@@ -127,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _passwordController,
               obscureText: _obscurePassword,
               decoration: InputDecoration(
-                labelText: "Parol o'ylab toping",
+                labelText: 'create_password'.tr,
                 prefixIcon: const Icon(Icons.lock),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -163,13 +164,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     child: Text.rich(
                       TextSpan(
-                        text: "Men ",
+                        text: "${'i_agree'.tr} ",
                         children: [
                           TextSpan(
-                            text: "Maxfiylik siyosati",
+                            text: 'privacy_policy'.tr,
                             style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline, fontWeight: FontWeight.bold),
                           ),
-                          const TextSpan(text: " va Foydalanish shartlariga roziman"),
                         ],
                       ),
                       style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
@@ -193,9 +193,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 if (phone.isEmpty || firstName.isEmpty || lastName.isEmpty || password.isEmpty || ageText.isEmpty || district.isEmpty || region == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Barcha maydonlarni to'ldiring!"),
+                    SnackBar(
+                      content: Text('fill_all_fields'.tr),
                       backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return;
+                }
+
+                if (password.length < 6) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('password_min_6'.tr),
+                      backgroundColor: Colors.orange,
                     ),
                   );
                   return;
@@ -203,8 +213,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 if (!_acceptedPrivacyPolicy) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Iltimos, Maxfiylik siyosatiga rozi bo'ling!"),
+                    SnackBar(
+                      content: Text('agree_policy'.tr),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
@@ -214,8 +224,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 int? age = int.tryParse(ageText);
                 if (age == null || age < 15) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Yoshingiz kamida 15 bo'lishi kerak"),
+                    SnackBar(
+                      content: Text('age_min_15'.tr),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
@@ -233,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(response['message'] ?? "SMS yuborishda xatolik"),
+                      content: Text(response['message'] ?? 'error'.tr),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
@@ -260,7 +270,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               },
               child: _isLoading
                 ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                : const Text('Ro\'yxatdan o\'tish'),
+                : Text('registration'.tr),
             ),
           ],
         ),

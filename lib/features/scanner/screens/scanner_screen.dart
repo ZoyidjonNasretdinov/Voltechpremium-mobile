@@ -18,40 +18,43 @@ class _ScannerScreenState extends State<ScannerScreen> {
   final ApiService _apiService = ApiService();
 
   bool _isScanned = false;
-  String? _trackingBarcode;
-  DateTime? _trackingStartTime;
-
   void _onDetect(BarcodeCapture capture) async {
     if (_isScanned) return;
     
     final List<Barcode> barcodes = capture.barcodes;
-    if (barcodes.isEmpty) {
-      _trackingBarcode = null;
-      _trackingStartTime = null;
-      return;
-    }
+    if (barcodes.isEmpty) return;
 
     final barcode = barcodes.first;
     if (barcode.rawValue == null) return;
     
-    final rawValue = barcode.rawValue!;
+    setState(() => _isScanned = true);
+    HapticFeedback.heavyImpact();
     
-    if (_trackingBarcode != rawValue) {
-      _trackingBarcode = rawValue;
-      _trackingStartTime = DateTime.now();
-      return;
-    }
-    
-    if (DateTime.now().difference(_trackingStartTime!).inSeconds >= 2) {
-      setState(() => _isScanned = true);
-      HapticFeedback.heavyImpact();
-      
-      final qrCode = rawValue;
-      _processQrCode(qrCode);
-    }
+    _processQrCode(barcode.rawValue!);
   }
 
   Future<void> _processQrCode(String qrCode) async {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: Colors.green),
+                  const SizedBox(height: 16),
+                  Text('loading'.tr, style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface)),
+                ],
+              ),
+            ),
+          ),
+        );
         
         // Backendga so'rov yuborish
         final token = await _apiService.getToken();
@@ -63,18 +66,54 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }
         
         if (!mounted) return;
+        Navigator.of(context, rootNavigator: true).pop(); // Yuklanmoqda oynasini yopish
+        
+        if (!mounted) return;
         
         if (response['success']) {
           if (token != null) {
-            num rawPoints = response['data']['pointsEarned'] ?? response['data']['bonusPoints'] ?? response['data']['points'] ?? response['data']['amount'] ?? 0;
+            num rawPoints = 0;
+            if (response['data'] is Map) {
+              final d = response['data'] as Map;
+              rawPoints = d['pointsEarned'] ?? d['bonusPoints'] ?? d['points'] ?? d['bonus'] ?? d['amount'] ?? d['earnedPoints'] ?? d['reward'] ?? d['ball'] ?? 0;
+              if (rawPoints == 0 && d['product'] is Map) {
+                rawPoints = d['product']['bonusPoints'] ?? d['product']['points'] ?? d['product']['bonus'] ?? 0;
+              }
+              if (rawPoints == 0 && d['qrCode'] is Map) {
+                rawPoints = d['qrCode']['bonusPoints'] ?? d['qrCode']['points'] ?? d['qrCode']['bonus'] ?? 0;
+              }
+            } else if (response['data'] is num) {
+              rawPoints = response['data'];
+            }
             int points = rawPoints.toInt();
-            final message = response['data']['message'] ?? 'QR kod muvaffaqiyatli faollashtirildi!';
+            String rawMessage = (response['data'] is Map ? response['data']['message'] : null)?.toString() ?? 'QR kod muvaffaqiyatli faollashtirildi!';
             
-            if (points == 0 && message != null) {
-              final match = RegExp(r'\b(\d+)\b').firstMatch(message.toString());
+            if (points == 0 && rawMessage.isNotEmpty) {
+              var match = RegExp(r'(\d+)\s*(?:bonus|ball|point)', caseSensitive: false).firstMatch(rawMessage);
+              match ??= RegExp(r'(?:sizga|berildi|qo\x27shildi|taqdim etildi|taqdim etiladi)\s+(\d+)', caseSensitive: false).firstMatch(rawMessage);
+              match ??= RegExp(r'(\d+)\s+(?:taqdim|qo\x27shildi|berildi)', caseSensitive: false).firstMatch(rawMessage);
+              
               if (match != null) {
                 points = int.tryParse(match.group(1) ?? '0') ?? 0;
+              } else {
+                final matches = RegExp(r'(?<!\S|\d-)\b\d+\b(?!\S|-|\.)').allMatches(rawMessage);
+                if (matches.isNotEmpty) {
+                  points = int.tryParse(matches.last.group(0) ?? '0') ?? 0;
+                }
               }
+            }
+            
+            String displayMessage = rawMessage;
+            displayMessage = displayMessage.replaceAll(RegExp(r'^Tabriklaymiz!\s*', caseSensitive: false), '');
+            displayMessage = displayMessage.replaceAll(RegExp(r'\s*(?:uchun\s*)?(?:sizga\s*)?\d+\s*(?:bonus|ball|point)\s*(?:taqdim etildi|berildi|qo\x27shildi|taqdim etiladi)?\.?', caseSensitive: false), '');
+            displayMessage = displayMessage.replaceAll(RegExp(r'\s*(?:sizga\s*)?\d+\s*(?:bonus|ball|point)\s*(?:taqdim etildi|berildi|qo\x27shildi|taqdim etiladi)?\.?', caseSensitive: false), '');
+            
+            if (displayMessage.trim().isEmpty) {
+              displayMessage = 'product_activated'.tr;
+            } else if (!displayMessage.trim().endsWith('.') && !displayMessage.trim().endsWith('!')) {
+              displayMessage = "${displayMessage.trim()} ${'for_product_activated'.tr}";
+            } else {
+              displayMessage = displayMessage.trim();
             }
             
             showDialog(
@@ -108,14 +147,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         child: const Icon(Icons.check_circle, size: 48, color: Colors.green),
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        "Tabriklaymiz!",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green),
+                      Text(
+                        'congratulations'.tr,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        message,
+                        displayMessage,
                         style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
                         textAlign: TextAlign.center,
                       ),
@@ -141,7 +180,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             const Icon(Icons.stars, color: Colors.white),
                             const SizedBox(width: 8),
                             Text(
-                              "+$points Ball",
+                              "+$points ${'points'.tr}",
                               style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -158,7 +197,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
-                          child: const Text("Ajoyib!", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text('great'.tr, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -172,7 +211,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
             final productName = data['name'] ?? 'Mahsulot';
             final desc = data['description'] ?? '';
             final points = data['bonusPoints'] ?? 0;
-            final price = data['price'] ?? 0;
             final scanCount = data['scanCount'] ?? 0;
             
             showDialog(
@@ -232,25 +270,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Column(
-                              children: [
-                                Text("Narxi", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
-                                const SizedBox(height: 4),
-                                Text("$price UZS", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            Container(width: 1, height: 40, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
-                            Column(
-                              children: [
-                                Text("Skanerlangan", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
-                                const SizedBox(height: 4),
-                                Text("$scanCount marta", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ],
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Text('status'.tr, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
+                              const SizedBox(height: 4),
+                              Text(
+                                scanCount == 0 ? 'status_inactive'.tr : 'status_active'.tr, 
+                                style: TextStyle(
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.bold,
+                                  color: scanCount == 0 ? Colors.grey : Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       
@@ -277,7 +311,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             const Icon(Icons.stars, color: Colors.white),
                             const SizedBox(width: 8),
                             Text(
-                              "+$points Ball",
+                              "+$points ${'points'.tr}",
                               style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -286,7 +320,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       
                       const SizedBox(height: 24),
                       Text(
-                        "Ushbu ballarni hisobingizga qo'shish uchun tizimga kiring!",
+                        'login_to_add_points'.tr,
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
                         textAlign: TextAlign.center,
                       ),
@@ -303,7 +337,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 side: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
                               ),
-                              child: Text("Yopish", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                              child: Text('close'.tr, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -319,7 +353,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 elevation: 0,
                               ),
-                              child: const Text("Tizimga kirish", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              child: Text('login'.tr, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
@@ -331,10 +365,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
             );
           }
         } else {
-          final errorMessage = response['message']?.toString() ?? 'Xatolik yuz berdi';
-          final isAdminContactNeeded = errorMessage.toLowerCase().contains('ishlatilgan') || 
-                                       errorMessage.toLowerCase().contains('foydalanilgan') || 
-                                       errorMessage.toLowerCase().contains('used');
+          bool scannedBySelf = response['scannedBySelf'] == true;
+          
+          String errorMessage = scannedBySelf 
+              ? 'scanned_by_self'.tr 
+              : 'scanned_by_other'.tr;
+          
+          final isAdminContactNeeded = !scannedBySelf;
           
           showDialog(
             context: context,
@@ -345,10 +382,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10)),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
                   ],
                 ),
                 child: Column(
@@ -356,48 +393,48 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle),
-                      child: const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                      decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: const Icon(Icons.info_outline, color: Colors.orange, size: 48),
                     ),
                     const SizedBox(height: 20),
-                    const Text("Xatolik", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
+                    Text('attention'.tr, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
                     const SizedBox(height: 12),
                     Text(
-                      isAdminContactNeeded ? "$errorMessage\n\nBu QR kod oldin foydalanilgan bo'lishi mumkin." : errorMessage,
-                      style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8)),
+                      errorMessage,
                       textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyMedium?.color),
                     ),
                     const SizedBox(height: 24),
                     if (isAdminContactNeeded)
                       SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton(
+                        child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(ctx);
                             _showComplaintDialog(qrCode);
                           },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                            side: const BorderSide(color: Colors.orange),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
                           ),
-                          child: const Text("Adminga shikoyat qilish", style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('send_complaint'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     if (isAdminContactNeeded) const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: OutlinedButton(
                         onPressed: () => Navigator.pop(ctx),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
                         ),
-                        child: const Text("Tushunarli", style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text(isAdminContactNeeded ? 'cancel'.tr : 'understood'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -411,8 +448,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
           if (mounted) {
             setState(() {
               _isScanned = false;
-              _trackingBarcode = null;
-              _trackingStartTime = null;
             });
           }
         });
@@ -444,9 +479,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 child: Icon(Icons.keyboard, size: 40, color: Theme.of(context).colorScheme.primary),
               ),
               const SizedBox(height: 20),
-              const Text("Qo'lda kiritish", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Text('manual_entry'.tr, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text("QR kod tagidagi raqamni yozing", style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+              Text('enter_qr_number'.tr, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
               const SizedBox(height: 20),
               TextField(
                 controller: codeController,
@@ -473,7 +508,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     child: TextButton(
                       onPressed: () => Navigator.pop(ctx),
                       style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                      child: Text("Bekor qilish", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+                      child: Text('cancel'.tr, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -491,7 +526,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
-                      child: const Text("Tasdiqlash", style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text('confirm'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -534,7 +569,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     child: const Icon(Icons.report_problem, size: 40, color: Colors.orange),
                   ),
                   const SizedBox(height: 20),
-                  const Text("Shikoyat qoldirish", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('leave_complaint'.tr, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -562,7 +597,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         child: TextButton(
                           onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
                           style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                          child: Text("Bekor qilish", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
+                          child: Text('cancel'.tr, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -583,7 +618,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(res['message'] ?? (res['success'] ? "Shikoyat yuborildi" : "Xatolik")),
+                                content: Text(res['message'] ?? (res['success'] ? 'complaint_sent'.tr : 'error'.tr)),
                                 backgroundColor: res['success'] ? Colors.green : Colors.red,
                               )
                             );
@@ -597,7 +632,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
                           child: isSubmitting 
                               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Text("Yuborish", style: TextStyle(fontWeight: FontWeight.bold)),
+                              : Text('submit'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -650,6 +685,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
               MobileScanner(
                 controller: controller,
                 scanWindow: scanWindow,
+                errorBuilder: (context, error) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.videocam_off, color: Colors.white54, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          'camera_error'.tr,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                  );
+                },
                 onDetect: _onDetect,
               ),
               Container(
@@ -670,7 +721,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _showManualEntryDialog,
                     icon: const Icon(Icons.keyboard),
-                    label: const Text("Qo'lda kiritish"),
+                    label: Text('manual_entry'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Colors.white,

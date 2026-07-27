@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
+import '../../../core/localization/app_localizations.dart';
 
 
 class TransactionsScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Ballar tarixi', style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text('points_history'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
       body: _isLoading

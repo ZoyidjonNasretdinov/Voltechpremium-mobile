@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:pinput/pinput.dart';
 import '../../../core/api_service.dart';
 import 'pending_approval_screen.dart';
 import '../../../main.dart'; 
+import '../../../core/localization/app_localizations.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String phone;
@@ -65,16 +67,15 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   }
 
   Future<void> _verify() async {
+    FocusScope.of(context).unfocus();
     final code = _codeController.text.trim();
     if (code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("6 xonali kodni kiriting"), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text('enter_6_digit'.tr), backgroundColor: Colors.redAccent),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
-    
     setState(() => _isLoading = true);
     
     if (widget.isRegistration) {
@@ -148,7 +149,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(widget.isRegistration ? "Muvaffaqiyatli ro'yxatdan o'tdingiz!" : "Parol o'zgartirildi!"),
+        content: Text(widget.isRegistration ? 'registration'.tr : 'reset_password'.tr),
         backgroundColor: Colors.green,
       ),
     );
@@ -162,41 +163,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     );
   }
 
-  Widget _buildOtpBox(int index) {
-    bool isFocused = _codeController.text.length == index || (_codeController.text.length == 6 && index == 5);
-    bool hasValue = _codeController.text.length > index;
-    String char = hasValue ? _codeController.text[index] : '';
-    final theme = Theme.of(context);
-    
-    return Container(
-      width: 45,
-      height: 55,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isFocused ? theme.colorScheme.primary : (hasValue ? theme.colorScheme.primary.withValues(alpha: 0.5) : theme.colorScheme.onSurface.withValues(alpha: 0.2)),
-          width: isFocused ? 2 : 1,
-        ),
-        boxShadow: isFocused ? [
-          BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.2), blurRadius: 8, spreadRadius: 1)
-        ] : null,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        char,
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Kodni tasdiqlash"),
+        title: Text('verify_code'.tr),
       ),
       body: SafeArea(
         child: Padding(
@@ -205,7 +178,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'SMS orqali yuborilgan kodni kiriting',
+                'enter_6_digit'.tr,
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
@@ -217,41 +190,49 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               ),
               const SizedBox(height: 48),
               
-              // Custom 6-digit OTP Input
-              GestureDetector(
-                onTap: () {
-                  _focusNode.requestFocus();
-                },
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Invisible text field that takes the input
-                    Opacity(
-                      opacity: 0.0,
-                      child: TextField(
-                        controller: _codeController,
-                        focusNode: _focusNode,
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        autofocus: true,
-                        onChanged: (val) {
-                          setState(() {});
-                          if (val.length == 6) {
-                            _verify();
-                          }
-                        },
-                        decoration: const InputDecoration(counterText: ""),
-                      ),
-                    ),
-                    // Visual boxes
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(6, (index) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: _buildOtpBox(index),
-                      )),
-                    ),
-                  ],
+              // Pinput 6-digit OTP Input
+              Pinput(
+                length: 6,
+                controller: _codeController,
+                focusNode: _focusNode,
+                autofocus: true,
+                onCompleted: (pin) => _verify(),
+                defaultPinTheme: PinTheme(
+                  width: 45,
+                  height: 55,
+                  textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+                  ),
+                ),
+                focusedPinTheme: PinTheme(
+                  width: 45,
+                  height: 55,
+                  textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.colorScheme.primary, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
+                    ],
+                  ),
+                ),
+                submittedPinTheme: PinTheme(
+                  width: 45,
+                  height: 55,
+                  textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                  ),
                 ),
               ),
               
@@ -260,12 +241,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                 onPressed: _isLoading ? null : _verify,
                 child: _isLoading
                     ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                    : const Text('Tasdiqlash'),
+                    : Text('confirm'.tr),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _secondsRemaining == 0 
                   ? () async {
+                      FocusScope.of(context).unfocus();
                       setState(() => _isLoading = true);
                       final response = widget.isRegistration 
                         ? await _apiService.sendSms(widget.phone)
@@ -275,7 +257,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       setState(() => _isLoading = false);
                       if (response['success'] == true) {
                         if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Kod qayta yuborildi"), backgroundColor: Colors.green));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('code_resent'.tr), backgroundColor: Colors.green));
                         _startTimer();
                       } else {
                         if (!context.mounted) return;
@@ -283,7 +265,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       }
                     } 
                   : null,
-                child: Text(_secondsRemaining > 0 ? "Kodni qayta yuborish ($_secondsRemaining s)" : "Kodni qayta yuborish"),
+                child: Text(_secondsRemaining > 0 ? "${'send_code'.tr} ($_secondsRemaining s)" : 'send_code'.tr),
               ),
             ],
           ),

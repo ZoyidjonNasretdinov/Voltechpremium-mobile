@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/api_service.dart';
 import 'verify_otp_screen.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -26,8 +27,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (phone.length < 9 || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Barcha maydonlarni to'ldiring"),
+        SnackBar(
+          content: Text('fill_all_fields'.tr),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -36,8 +37,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Parollar mos kelmadi"),
+        SnackBar(
+          content: Text('passwords_do_not_match'.tr),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -46,8 +47,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Parol kamida 6 ta belgidan iborat bo'lishi kerak"),
+        SnackBar(
+          content: Text('password_min_6'.tr),
           backgroundColor: Colors.orange,
         ),
       );
@@ -77,7 +78,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(response['message'] ?? "Xatolik yuz berdi"),
+          content: Text(response['message'] ?? 'error'.tr),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -98,7 +99,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Parolni tiklash"),
+        title: Text('forgot_password_title'.tr),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -114,13 +115,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Yangi parolni kiriting',
+                'enter_new_password'.tr,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
-                'Parolingizni tiklash uchun telefon raqamingiz va yangi parolingizni kiriting. SMS orqali kod yuboriladi.',
+                'forgot_password_desc'.tr,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -131,9 +132,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Telefon raqam',
-                  prefixIcon: Icon(Icons.phone),
+                decoration: InputDecoration(
+                  labelText: 'phone'.tr,
+                  prefixIcon: const Icon(Icons.phone),
                 ),
               ),
               const SizedBox(height: 16),
@@ -142,7 +143,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'Yangi parol',
+                  labelText: 'new_password'.tr,
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -163,7 +164,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
-                  labelText: 'Yangi parolni tasdiqlang',
+                  labelText: 'confirm_new_password'.tr,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -184,7 +185,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 onPressed: _isLoading ? null : _submit,
                 child: _isLoading 
                   ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                  : const Text('Kodni yuborish'),
+                  : Text('send_code'.tr),
               ),
             ],
           ),

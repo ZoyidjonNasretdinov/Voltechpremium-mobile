@@ -34,6 +34,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _regionController = TextEditingController(text: widget.profileData?['region'] ?? '');
     _districtController = TextEditingController(text: widget.profileData?['district'] ?? '');
     _currentImageUrl = widget.profileData?['imageUrl'];
+    if (widget.profileData == null || widget.profileData!.isEmpty) {
+      _loadProfileData();
+    }
+  }
+
+  Future<void> _loadProfileData() async {
+    setState(() => _isLoading = true);
+    final response = await _apiService.getProfile();
+    if (response['success'] == true && mounted) {
+      final data = response['data'] ?? {};
+      setState(() {
+        _firstNameController.text = data['firstName'] ?? '';
+        _lastNameController.text = data['lastName'] ?? '';
+        _ageController.text = data['age']?.toString() ?? '';
+        _regionController.text = data['region'] ?? '';
+        _districtController.text = data['district'] ?? '';
+        _currentImageUrl = data['imageUrl'];
+        _isLoading = false;
+      });
+    } else if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -62,13 +84,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         setState(() {
           _currentImageUrl = response['data']['imageUrl'];
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Rasm yuklandi"), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('image_uploaded'.tr), backgroundColor: Colors.green));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Rasm yuklashda xatolik"), backgroundColor: Colors.redAccent));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? 'error'.tr), backgroundColor: Colors.redAccent));
       }
     } catch (e) {
       setState(() => _isUploadingImage = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Xatolik yuz berdi"), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('error'.tr), backgroundColor: Colors.redAccent));
     }
   }
 
@@ -80,13 +102,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final district = _districtController.text.trim();
 
     if (firstName.isEmpty || lastName.isEmpty || ageText.isEmpty || region.isEmpty || district.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Barcha maydonlarni to'ldiring"), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('fill_all_fields'.tr), backgroundColor: Colors.redAccent));
       return;
     }
 
     final age = int.tryParse(ageText);
     if (age == null || age < 15) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Yosh kamida 15 bo'lishi kerak"), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('age_min_15'.tr), backgroundColor: Colors.redAccent));
       return;
     }
 
@@ -98,10 +120,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isLoading = false);
 
     if (response['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profil yangilandi"), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('profile_updated'.tr), backgroundColor: Colors.green));
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Xatolik yuz berdi"), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? 'error'.tr), backgroundColor: Colors.redAccent));
     }
   }
 
@@ -220,11 +242,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       children: [
-                        _buildTextField('Ism', _firstNameController, Icons.person_outline, theme),
-                        _buildTextField('Familiya', _lastNameController, Icons.person_outline, theme),
-                        _buildTextField('Yosh', _ageController, Icons.cake_outlined, theme, keyboardType: TextInputType.number),
-                        _buildTextField('Viloyat', _regionController, Icons.map_outlined, theme),
-                        _buildTextField('Tuman', _districtController, Icons.location_city_outlined, theme),
+                        _buildTextField('first_name'.tr, _firstNameController, Icons.person_outline, theme),
+                        _buildTextField('last_name'.tr, _lastNameController, Icons.person_outline, theme),
+                        _buildTextField('age'.tr, _ageController, Icons.cake_outlined, theme, keyboardType: TextInputType.number),
+                        _buildTextField('select_region'.tr, _regionController, Icons.map_outlined, theme),
+                        _buildTextField('district'.tr, _districtController, Icons.location_city_outlined, theme),
                       ],
                     ),
                   ),
@@ -256,7 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         builder: (dialogContext) => AlertDialog(
                           backgroundColor: theme.scaffoldBackgroundColor,
                           title: Text('delete_account'.tr, style: TextStyle(color: theme.colorScheme.onSurface)),
-                          content: Text("Haqiqatan ham hisobingizni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.", style: TextStyle(color: theme.colorScheme.onSurface)),
+                          content: Text('delete_account_confirm'.tr, style: TextStyle(color: theme.colorScheme.onSurface)),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(dialogContext),
@@ -273,7 +295,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   // Navigate to login or splash and clear history
                                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Xatolik yuz berdi"), backgroundColor: Colors.redAccent));
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? 'error'.tr), backgroundColor: Colors.redAccent));
                                 }
                               },
                               child: Text('delete_account'.tr, style: const TextStyle(color: Colors.redAccent)),

@@ -35,11 +35,19 @@ class _HomeScreenState extends State<HomeScreen> {
         _profileData = profileResponse['data'];
       }
 
-      // GET /api/v1/profile/transactions → TransactionHistoryDto: {type, description, points, date}
       final txResponse = await _apiService.getTransactionHistory(page: 0, size: 20);
       if (txResponse['success'] == true) {
         final data = txResponse['data'];
-        _recentActivities = data?['content'] ?? [];
+        List<dynamic> activities = data?['content'] ?? [];
+        activities.sort((a, b) {
+          final dateA = DateTime.tryParse(a['date']?.toString() ?? '');
+          final dateB = DateTime.tryParse(b['date']?.toString() ?? '');
+          if (dateA == null && dateB == null) return 0;
+          if (dateA == null) return 1;
+          if (dateB == null) return -1;
+          return dateB.compareTo(dateA);
+        });
+        _recentActivities = activities;
       }
     } catch (e) {
       debugPrint("Error loading data: $e");

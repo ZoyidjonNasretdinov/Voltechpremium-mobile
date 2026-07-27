@@ -5,6 +5,7 @@ import 'pending_approval_screen.dart';
 import '../../../main.dart';
 import '../../../core/api_service.dart';
 import '../../scanner/screens/scanner_screen.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Tizimga kirish',
+                        'login_title'.tr,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Telefon raqam',
+                          labelText: 'phone'.tr,
                           prefixIcon: const Icon(Icons.phone),
                         ),
                       ),
@@ -78,8 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Parol',
-                          prefixIcon: const Icon(Icons.lock),
+                          labelText: 'password_label'.tr,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -101,8 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           
                           if (phone.length < 9 || password.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Telefon raqam va parolni kiriting"),
+                              SnackBar(
+                                content: Text('enter_phone_password'.tr),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(response['message'] ?? "Xatolik yuz berdi"),
+                                content: Text(response['message'] ?? 'error'.tr),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: _isLoading 
                           ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                          : const Text('Kirish'),
+                          : Text('login_btn'.tr),
                       ),
                       const SizedBox(height: 16),
                       TextButton(
@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                         child: Text(
-                          "Parolni unutdingizmi?",
+                          'forgot_password'.tr,
                           style: TextStyle(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
@@ -188,10 +188,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Center(
+                      Center(
                         child: Text(
-                          "QR orqali tekshirish",
-                          style: TextStyle(
+                          'check_via_qr'.tr,
+                          style: const TextStyle(
                             fontSize: 14, 
                             color: Colors.grey, 
                             fontWeight: FontWeight.w500,
@@ -208,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Akkauntingiz yo'qmi? ", 
+                      'no_account'.tr, 
                       style: TextStyle(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         fontSize: 15,
@@ -222,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       child: Text(
-                        "Ro'yxatdan o'tish",
+                        'register_btn'.tr,
                         style: TextStyle(
                           color: theme.colorScheme.primary, 
                           fontWeight: FontWeight.bold,

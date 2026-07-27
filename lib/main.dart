@@ -70,7 +70,7 @@ class _MainNavigationState extends State<MainNavigation> {
             onTap: (index) => setState(() => _currentIndex = index),
             items: [
               BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'basic'.tr), // Using 'basic' or could add 'home'
-              BottomNavigationBarItem(icon: const Icon(Icons.qr_code_scanner), label: 'Scanner'), // Add scanner translation later if needed
+              BottomNavigationBarItem(icon: const Icon(Icons.qr_code_scanner), label: 'scanner'.tr),
             ],
           ),
         );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_service.dart';
 import 'package:flutter/cupertino.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -62,7 +63,7 @@ class _SupportScreenState extends State<SupportScreen> {
           icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Biz bilan bog'lanish", style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text('contact_us'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
       body: _isLoading
