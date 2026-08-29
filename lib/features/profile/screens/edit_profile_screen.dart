@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
@@ -215,20 +214,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(4.0),
-                              child: Container(
-                                decoration: BoxDecoration(
+                              child: ClipOval(
+                                child: Container(
                                   color: accentColor.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                  image: _currentImageUrl != null && _currentImageUrl!.isNotEmpty
-                                      ? DecorationImage(
-                                          image: CachedNetworkImageProvider(ApiService.resolveImageUrl(_currentImageUrl.toString())!),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : null,
+                                  child: _isUploadingImage
+                                      ? const Center(child: CircularProgressIndicator(strokeWidth: 2.5))
+                                      : (_currentImageUrl != null &&
+                                              _currentImageUrl!.isNotEmpty &&
+                                              ApiService.resolveImageUrl(_currentImageUrl) != null)
+                                          ? Image.network(
+                                              ApiService.resolveImageUrl(_currentImageUrl)!,
+                                              fit: BoxFit.cover,
+                                              width: 112,
+                                              height: 112,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70);
+                                              },
+                                            )
+                                          : Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70),
                                 ),
-                                child: _currentImageUrl == null || _currentImageUrl!.isEmpty
-                                    ? Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70)
-                                    : null,
                               ),
                             ),
                           ),

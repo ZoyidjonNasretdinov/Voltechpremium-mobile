@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../main.dart';
 import '../../auth/screens/login_screen.dart';
@@ -110,21 +109,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Row(
                           children: [
                             Container(
-                              width: 50,
-                              height: 50,
+                              width: 54,
+                              height: 54,
                               decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.3),
+                                color: Colors.grey.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
-                                image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
-                                    ? DecorationImage(
-                                        image: CachedNetworkImageProvider(ApiService.resolveImageUrl(_profileData!['imageUrl'].toString())!),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
                               ),
-                              child: _profileData == null || _profileData!['imageUrl'] == null || _profileData!['imageUrl'].toString().isEmpty
-                                  ? Icon(Icons.person, color: textColor, size: 30)
-                                  : null,
+                              child: ClipOval(
+                                child: (_profileData != null &&
+                                        _profileData!['imageUrl'] != null &&
+                                        _profileData!['imageUrl'].toString().isNotEmpty &&
+                                        ApiService.resolveImageUrl(_profileData!['imageUrl']) != null)
+                                    ? Image.network(
+                                        ApiService.resolveImageUrl(_profileData!['imageUrl'])!,
+                                        fit: BoxFit.cover,
+                                        width: 54,
+                                        height: 54,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Icon(Icons.person, color: textColor, size: 30);
+                                        },
+                                      )
+                                    : Icon(Icons.person, color: textColor, size: 30),
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(

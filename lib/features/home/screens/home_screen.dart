@@ -235,18 +235,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.grey,
+                      color: Colors.grey.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
-                      image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(ApiService.resolveImageUrl(_profileData!['imageUrl'].toString())!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
                     ),
-                    child: _profileData == null || _profileData!['imageUrl'] == null || _profileData!['imageUrl'].toString().isEmpty
-                        ? const Icon(Icons.person, color: Colors.white)
-                        : null,
+                    child: ClipOval(
+                      child: (_profileData != null &&
+                              _profileData!['imageUrl'] != null &&
+                              _profileData!['imageUrl'].toString().isNotEmpty &&
+                              ApiService.resolveImageUrl(_profileData!['imageUrl']) != null)
+                          ? Image.network(
+                              ApiService.resolveImageUrl(_profileData!['imageUrl'])!,
+                              fit: BoxFit.cover,
+                              width: 40,
+                              height: 40,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.person, color: Colors.white, size: 22);
+                              },
+                            )
+                          : const Icon(Icons.person, color: Colors.white, size: 22),
+                    ),
                   ),
                 ),
               ),
