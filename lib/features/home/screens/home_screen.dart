@@ -41,15 +41,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
+    final token = await _apiService.getToken();
+    if (token == null || !mounted) return;
+
     setState(() => _isLoading = true);
     
     try {
       final profileResponse = await _apiService.getProfile();
+      if (!mounted) return;
       if (profileResponse['success'] == true) {
         _profileData = profileResponse['data'];
       }
 
       final txResponse = await _apiService.getTransactionHistory(page: 0, size: 20);
+      if (!mounted) return;
       if (txResponse['success'] == true) {
         final data = txResponse['data'];
         List<dynamic> activities = data?['content'] ?? [];
@@ -222,7 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                    ).then((_) => _loadData());
+                    ).then((_) {
+                      if (mounted) _loadData();
+                    });
                   },
                   child: Container(
                     width: 40,

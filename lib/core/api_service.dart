@@ -44,8 +44,15 @@ class ApiService {
     } catch (_) { return true; }
   }
 
+  static bool _isNavigatingToLogin = false;
+
   void _handle401() async {
     await logout();
+    if (_isNavigatingToLogin) return;
+    _isNavigatingToLogin = true;
+    Future.delayed(const Duration(seconds: 2), () {
+      _isNavigatingToLogin = false;
+    });
     if (navigatorKey.currentContext != null) {
       Navigator.of(navigatorKey.currentContext!).pushNamedAndRemoveUntil('/login', (route) => false);
     }
@@ -105,9 +112,11 @@ class ApiService {
     
     if (requiresAuth) {
       final token = await getToken();
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
+      if (token == null) {
+        // Already logged out, do not make network call or trigger multiple 401 navigations
+        return http.Response('{"success":false,"message":"Unauthenticated"}', 401);
       }
+      headers['Authorization'] = 'Bearer $token';
     }
 
     http.Response response = await _sendInternal(method, url, headers: headers, body: body);
