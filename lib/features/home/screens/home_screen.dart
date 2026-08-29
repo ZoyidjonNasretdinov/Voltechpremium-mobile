@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       shape: BoxShape.circle,
                       image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
                           ? DecorationImage(
-                              image: NetworkImage("${ApiService.baseUrl}/files/download/${_profileData!['imageUrl']}"),
+                              image: NetworkImage(ApiService.resolveImageUrl(_profileData!['imageUrl'].toString())!),
                               fit: BoxFit.cover,
                             )
                           : null,

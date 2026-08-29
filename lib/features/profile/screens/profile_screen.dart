@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 shape: BoxShape.circle,
                                 image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
                                     ? DecorationImage(
-                                        image: CachedNetworkImageProvider("${ApiService.baseUrl}/files/download/${_profileData!['imageUrl']}"),
+                                        image: CachedNetworkImageProvider(ApiService.resolveImageUrl(_profileData!['imageUrl'].toString())!),
                                         fit: BoxFit.cover,
                                       )
                                     : null,

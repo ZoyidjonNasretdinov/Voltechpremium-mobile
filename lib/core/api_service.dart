@@ -9,6 +9,15 @@ class ApiService {
   static const String baseUrl = 'https://voltechpremiumbackend-api-production.up.railway.app/api';
   final _secureStorage = const FlutterSecureStorage();
 
+  static String? resolveImageUrl(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
+    final trimmed = path.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    return '$baseUrl/files/download/$trimmed';
+  }
+
   Future<String?> getToken() async => await _secureStorage.read(key: 'accessToken');
   Future<String?> getRefreshToken() async => await _secureStorage.read(key: 'refreshToken');
 

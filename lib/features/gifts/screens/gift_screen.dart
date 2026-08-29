@@ -495,9 +495,9 @@ class _GiftScreenState extends State<GiftScreen> {
                                         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                                         child: Container(
                                           color: accentColor.withValues(alpha: 0.06),
-                                          child: imageUrl != null && imageUrl.toString().isNotEmpty
+                                           child: (imageUrl != null && imageUrl.toString().isNotEmpty && ApiService.resolveImageUrl(imageUrl.toString()) != null)
                                               ? Image.network(
-                                                  "${ApiService.baseUrl}/files/download/$imageUrl",
+                                                  ApiService.resolveImageUrl(imageUrl.toString())!,
                                                   fit: BoxFit.cover,
                                                   errorBuilder: (context, error, stackTrace) {
                                                     return Center(
