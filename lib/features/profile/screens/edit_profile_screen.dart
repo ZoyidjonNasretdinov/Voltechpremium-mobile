@@ -75,22 +75,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       setState(() => _isUploadingImage = true);
 
-      final response = await _apiService.uploadProfileImage(image.path);
+      final bytes = await image.readAsBytes();
+      final filename = image.name.isNotEmpty ? image.name : 'avatar.jpg';
+
+      final response = await _apiService.uploadProfileImageBytes(bytes, filename);
 
       if (!mounted) return;
       setState(() => _isUploadingImage = false);
 
       if (response['success'] == true) {
         setState(() {
-          _currentImageUrl = response['data']['imageUrl'];
+          _currentImageUrl = response['data']?['imageUrl'];
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('image_uploaded'.tr), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('image_uploaded'.tr),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? 'error'.tr), backgroundColor: Colors.redAccent));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'error'.tr),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isUploadingImage = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('error'.tr), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('error'.tr),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
     }
   }
 

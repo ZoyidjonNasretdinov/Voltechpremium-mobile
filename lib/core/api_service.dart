@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -525,15 +526,30 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> uploadProfileImage(String filePath) async {
+  Future<Map<String, dynamic>> uploadProfileImageBytes(List<int> bytes, String filename) async {
     try {
       if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       var token = await getToken();
       if (token == null) return {'success': false, 'message': 'Token topilmadi'};
 
+      MediaType contentType;
+      final lower = filename.toLowerCase();
+      if (lower.endsWith('.png')) {
+        contentType = MediaType('image', 'png');
+      } else if (lower.endsWith('.webp')) {
+        contentType = MediaType('image', 'webp');
+      } else {
+        contentType = MediaType('image', 'jpeg');
+      }
+
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/v1/profile/image'));
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+        contentType: contentType,
+      ));
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
@@ -542,18 +558,25 @@ class ApiService {
         bool refreshed = await _refreshTokens();
         if (refreshed) {
           token = await getToken();
-          var newRequest = http.MultipartRequest('POST', Uri.parse('$baseUrl/v1/profile/image'));
-          newRequest.headers['Authorization'] = 'Bearer $token!';
-          newRequest.files.add(await http.MultipartFile.fromPath('file', filePath));
-          streamedResponse = await newRequest.send();
-          response = await http.Response.fromStream(streamedResponse);
+          if (token != null) {
+            var newRequest = http.MultipartRequest('POST', Uri.parse('$baseUrl/v1/profile/image'));
+            newRequest.headers['Authorization'] = 'Bearer $token';
+            newRequest.files.add(http.MultipartFile.fromBytes(
+              'file',
+              bytes,
+              filename: filename,
+              contentType: contentType,
+            ));
+            streamedResponse = await newRequest.send();
+            response = await http.Response.fromStream(streamedResponse);
+          }
         } else {
           _handle401();
           return {"success": false, "message": "Sessiya tugadi"};
         }
       }
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
         return {'success': true, 'data': data};
       } else {
@@ -561,12 +584,16 @@ class ApiService {
           final errorData = jsonDecode(response.body);
           return {'success': false, 'message': errorData['message'] ?? 'Rasm yuklashda xatolik'};
         } catch (_) {
-          return {'success': false, 'message': 'Rasm yuklashda xatolik'};
+          return {'success': false, 'message': 'Rasm yuklashda xatolik (${response.statusCode})'};
         }
       }
     } catch (e) {
       return {'success': false, 'message': 'Tarmoq xatosi: $e'};
     }
+  }
+
+  Future<Map<String, dynamic>> uploadProfileImage(String filePath) async {
+    return {'success': false, 'message': 'Use uploadProfileImageBytes'};
   }
 
   Future<Map<String, dynamic>> deleteAccount() async {
