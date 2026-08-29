@@ -196,7 +196,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   shape: BoxShape.circle,
                                   image: _currentImageUrl != null && _currentImageUrl!.isNotEmpty
                                       ? DecorationImage(
-                                          image: CachedNetworkImageProvider("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/$_currentImageUrl"),
+                                          image: CachedNetworkImageProvider("${ApiService.baseUrl}/files/download/$_currentImageUrl"),
                                           fit: BoxFit.cover,
                                         )
                                       : null,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../gifts/screens/gift_screen.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -23,7 +24,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSavedCardDesign();
     _loadData();
+  }
+
+  Future<void> _loadSavedCardDesign() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedIndex = prefs.getInt('selected_card_design');
+      if (savedIndex != null && mounted) {
+        setState(() => _selectedCardDesign = savedIndex);
+      }
+    } catch (e) {
+      debugPrint("Error loading card design: $e");
+    }
   }
 
   Future<void> _loadData() async {
@@ -102,9 +116,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomSheetSelector(BuildContext context, int index, Color color, String name) {
     final isSelected = _selectedCardDesign == index;
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         setState(() => _selectedCardDesign = index);
         Navigator.pop(context); // Close sheet after selection
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('selected_card_design', index);
+        } catch (e) {
+          debugPrint("Error saving card design: $e");
+        }
       },
       child: Padding(
         padding: const EdgeInsets.only(right: 20.0),
@@ -212,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       shape: BoxShape.circle,
                       image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
                           ? DecorationImage(
-                              image: NetworkImage("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/${_profileData!['imageUrl']}"),
+                              image: NetworkImage("${ApiService.baseUrl}/files/download/${_profileData!['imageUrl']}"),
                               fit: BoxFit.cover,
                             )
                           : null,

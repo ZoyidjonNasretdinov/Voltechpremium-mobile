@@ -118,7 +118,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                     image: gift['imageUrl'] != null && gift['imageUrl'].toString().isNotEmpty
                                         ? DecorationImage(
-                                            image: NetworkImage("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/${gift['imageUrl']}"),
+                                            image: NetworkImage("${ApiService.baseUrl}/files/download/${gift['imageUrl']}"),
                                             fit: BoxFit.cover,
                                           )
                                         : null,

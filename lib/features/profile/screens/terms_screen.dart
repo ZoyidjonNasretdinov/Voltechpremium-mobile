@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/localization/app_localizations.dart';
 
-class PolicyScreen extends StatelessWidget {
-  const PolicyScreen({super.key});
+class TermsScreen extends StatelessWidget {
+  const TermsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,34 +20,34 @@ class PolicyScreen extends StatelessWidget {
 
         final sections = [
           {
-            'icon': Icons.gavel_rounded,
-            'title': 'policy_sec1_title'.tr,
-            'desc': 'policy_sec1_desc'.tr,
+            'icon': Icons.description_rounded,
+            'title': 'terms_sec1_title'.tr,
+            'desc': 'terms_sec1_desc'.tr,
           },
           {
-            'icon': Icons.security_rounded,
-            'title': 'policy_sec2_title'.tr,
-            'desc': 'policy_sec2_desc'.tr,
+            'icon': Icons.stars_rounded,
+            'title': 'terms_sec2_title'.tr,
+            'desc': 'terms_sec2_desc'.tr,
           },
           {
-            'icon': Icons.qr_code_scanner_rounded,
-            'title': 'policy_sec3_title'.tr,
-            'desc': 'policy_sec3_desc'.tr,
+            'icon': Icons.redeem_rounded,
+            'title': 'terms_sec3_title'.tr,
+            'desc': 'terms_sec3_desc'.tr,
           },
           {
-            'icon': Icons.card_giftcard_rounded,
-            'title': 'policy_sec4_title'.tr,
-            'desc': 'policy_sec4_desc'.tr,
+            'icon': Icons.shield_rounded,
+            'title': 'terms_sec4_title'.tr,
+            'desc': 'terms_sec4_desc'.tr,
           },
           {
-            'icon': Icons.manage_accounts_rounded,
-            'title': 'policy_sec5_title'.tr,
-            'desc': 'policy_sec5_desc'.tr,
+            'icon': Icons.warning_amber_rounded,
+            'title': 'terms_sec5_title'.tr,
+            'desc': 'terms_sec5_desc'.tr,
           },
           {
-            'icon': Icons.support_agent_rounded,
-            'title': 'policy_sec6_title'.tr,
-            'desc': 'policy_sec6_desc'.tr,
+            'icon': Icons.contact_support_rounded,
+            'title': 'terms_sec6_title'.tr,
+            'desc': 'terms_sec6_desc'.tr,
           },
         ];
 
@@ -61,7 +61,7 @@ class PolicyScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              'policy_title'.tr,
+              'terms_title'.tr,
               style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
             ),
             centerTitle: true,
@@ -98,7 +98,7 @@ class PolicyScreen extends StatelessWidget {
                               color: primaryColor.withValues(alpha: 0.15),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.verified_user_rounded, color: primaryColor, size: 28),
+                            child: Icon(Icons.gavel_rounded, color: primaryColor, size: 24),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -108,49 +108,54 @@ class PolicyScreen extends StatelessWidget {
                                 Text(
                                   'Voltech Premium',
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    color: primaryColor,
                                     fontWeight: FontWeight.bold,
-                                    color: textColor,
+                                    fontSize: 13,
+                                    letterSpacing: 1.1,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'policy_last_updated'.tr,
-                                  style: TextStyle(fontSize: 12, color: subTextColor),
+                                  'terms_last_updated'.tr,
+                                  style: TextStyle(
+                                    color: subTextColor,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       Text(
-                        'policy_intro_subtitle'.tr,
+                        'terms_subtitle'.tr,
                         style: TextStyle(
-                          fontSize: 13,
-                          color: subTextColor,
-                          height: 1.4,
+                          color: textColor,
+                          fontSize: 14,
+                          height: 1.45,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-                // Policy Sections List
+                // Terms Sections
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: sections.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    final item = sections[index];
+                    final sec = sections[index];
                     return Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: borderColor),
                         boxShadow: [
                           BoxShadow(
@@ -172,19 +177,19 @@ class PolicyScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
-                                  item['icon'] as IconData,
-                                  size: 20,
+                                  sec['icon'] as IconData,
                                   color: primaryColor,
+                                  size: 20,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  item['title'] as String,
+                                  sec['title'] as String,
                                   style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
                                     color: textColor,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -192,10 +197,10 @@ class PolicyScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            item['desc'] as String,
+                            sec['desc'] as String,
                             style: TextStyle(
-                              fontSize: 13.5,
                               color: subTextColor,
+                              fontSize: 13.5,
                               height: 1.55,
                             ),
                           ),

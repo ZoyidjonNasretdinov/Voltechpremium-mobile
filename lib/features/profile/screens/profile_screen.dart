@@ -9,6 +9,7 @@ import 'transactions_screen.dart';
 import 'faq_screen.dart';
 import 'support_screen.dart';
 import 'policy_screen.dart';
+import 'terms_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
 
@@ -116,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 shape: BoxShape.circle,
                                 image: _profileData != null && _profileData!['imageUrl'] != null && _profileData!['imageUrl'].toString().isNotEmpty
                                     ? DecorationImage(
-                                        image: CachedNetworkImageProvider("https://voltechpremiumbackend-api-production.up.railway.app/api/files/download/${_profileData!['imageUrl']}"),
+                                        image: CachedNetworkImageProvider("${ApiService.baseUrl}/files/download/${_profileData!['imageUrl']}"),
                                         fit: BoxFit.cover,
                                       )
                                     : null,
@@ -288,9 +289,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildDivider(subTextColor),
                     _buildSettingsTile(
                       icon: CupertinoIcons.info_circle,
-                      title: 'terms'.tr,
+                      title: 'terms_title'.tr,
                       textColor: textColor,
                       subTextColor: subTextColor,
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const TermsScreen()));
+                      },
                     ),
                     _buildDivider(subTextColor),
                     _buildSettingsTile(

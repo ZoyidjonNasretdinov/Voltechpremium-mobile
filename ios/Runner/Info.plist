@@ -69,8 +69,8 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil rasmini yuklash uchun galereyaga ruxsat kerak.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Profil rasmini kameraga olish uchun kameraga ruxsat kerak.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Kamera uchun mikrofon ruxsati kerak.</string>
+	<string>QR kodlarni skanerlash va profil rasmini yuklash uchun kameraga ruxsat kerak.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
