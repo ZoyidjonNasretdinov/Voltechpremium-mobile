@@ -1,0 +1,29 @@
+====================================================
+VOLTECH PREMIUM — PLAY MARKET RELEASE MA'LUMOTLARI
+====================================================
+
+1. PLAY MARKETGA YUKLANADIGAN ASOSIY FAYL:
+   - Fayl nomi: Voltech_Premium.aab (Desktop da turibdi)
+   - Format: Android App Bundle (.aab) (Google Play Store aynan shu formatni talab qiladi)
+   - Paket nomi (Package ID): com.voltech.premium
+   - Versiya: 1.0.0 (Build 1)
+
+2. SIGNING KEY (IMZO VA KALIT) MA'LUMOTLARI:
+   (DIQQAT: Ushbu ma'lumotlarni va upload-keystore.jks faylini aslo yo'qotmang! Kelajakda yangi versiyalarni chiqarish uchun shu kalit kerak bo'ladi)
+   - Keystore fayli: upload-keystore.jks
+   - Key Alias: voltech_upload
+   - Keystore Password: voltech2026
+   - Key Password: voltech2026
+
+3. GOOGLE PLAY CONSOLE GA JOYLASHTIRISH TARTIBI:
+   1) Google Play Console (https://play.google.com/console) ga kiring.
+   2) "Create app" (Ilova yaratish) tugmasini bosing:
+      - App name: Völtech Premium
+      - Default language: Uzbek (yoki English)
+      - App or Game: App
+      - Free or Paid: Free
+   3) Chap menyudan "Production" (yoki "Internal testing" / "Closed testing") bo'limiga o'ting.
+   4) "Create new release" (Yangi reliz yaratish) tugmasini bosing.
+   5) "App bundles" bo'limida "Upload" tugmasini bosib Desktopdagi `Voltech_Premium.aab` faylini yuklang.
+   6) Release notes (Reliz tavsifi) yozing va "Save and publish" qiling.
+====================================================
