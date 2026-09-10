@@ -29,8 +29,17 @@
   <!-- Favicon removed to fix shelf_io Bad state: No element error during web dev -->
   <!-- <link rel="icon" type="image/png" href="favicon.png"/> -->
 
-  <title>mobile</title>
+  <title>Völtech Premium</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+  </script>
 </head>
 <body>
   <!--
