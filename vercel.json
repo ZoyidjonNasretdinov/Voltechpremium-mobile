@@ -1,0 +1,11 @@
+{
+  "buildCommand": "if command -v flutter > /dev/null 2>&1; then flutter build web --release; else if [ ! -d \"_flutter\" ]; then git clone -b stable --depth 1 https://github.com/flutter/flutter.git _flutter; fi && export PATH=\"$PATH:$(pwd)/_flutter/bin\" && flutter config --no-analytics && flutter build web --release; fi",
+  "outputDirectory": "build/web",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

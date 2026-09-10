@@ -47,3 +47,5 @@ test/*.apk
 test/*.ipa
 android/build/
 *.ipa
+_flutter/
+flutter/
