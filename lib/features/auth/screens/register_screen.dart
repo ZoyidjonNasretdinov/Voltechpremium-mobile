@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/api_service.dart';
 import '../../../core/localization/app_localizations.dart';
 import 'verify_otp_screen.dart';
+import 'forgot_password_screen.dart';
 import '../../profile/screens/policy_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -14,31 +15,24 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _ageController = TextEditingController();
   final _phoneController = TextEditingController(text: '+998 ');
-  final _districtController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _selectedRegion;
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   bool _acceptedPrivacyPolicy = false;
   final ApiService _apiService = ApiService();
 
-  final List<String> _regions = [
-    'Toshkent sh.',
-    'Toshkent viloyati',
-    'Andijon',
-    'Buxoro',
-    "Farg'ona",
-    'Jizzax',
-    'Xorazm',
-    'Namangan',
-    'Navoiy',
-    'Qashqadaryo',
-    'Samarqand',
-    'Sirdaryo',
-    'Surxondaryo',
-  ];
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +42,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         title: Text('registration'.tr),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -80,46 +77,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 16),
             
-            // Yosh
-            TextField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'age'.tr, prefixIcon: const Icon(Icons.calendar_today)),
-            ),
-            const SizedBox(height: 16),
-            
             // Telefon
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(labelText: 'phone'.tr, prefixIcon: const Icon(Icons.phone)),
-            ),
-            const SizedBox(height: 16),
-            
-            // Viloyat (Dropdown)
-            DropdownButtonFormField<String>(
-              isExpanded: true,
-              decoration: InputDecoration(labelText: 'select_region'.tr, prefixIcon: const Icon(Icons.location_on)),
-              dropdownColor: theme.colorScheme.surface,
-              initialValue: _selectedRegion,
-              items: _regions.map((String region) {
-                return DropdownMenuItem<String>(
-                  value: region,
-                  child: Text(region),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedRegion = newValue;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            
-            // Tuman (District)
-            TextField(
-              controller: _districtController,
-              decoration: InputDecoration(labelText: 'district'.tr, prefixIcon: const Icon(Icons.map)),
             ),
             const SizedBox(height: 16),
             
@@ -138,6 +100,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: () {
                     setState(() {
                       _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Parolni tasdiqlash
+            TextField(
+              controller: _confirmPasswordController,
+              obscureText: _obscureConfirmPassword,
+              decoration: InputDecoration(
+                labelText: 'confirm_password'.tr,
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                    color: theme.inputDecorationTheme.prefixIconColor,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
                     });
                   },
                 ),
@@ -183,18 +167,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Saqlash / Tasdiqlash
             ElevatedButton(
               onPressed: _isLoading ? null : () async {
+                if (_isLoading) return;
+                FocusScope.of(context).unfocus();
+
                 final phone = _phoneController.text.replaceAll(' ', '');
                 final firstName = _firstNameController.text.trim();
                 final lastName = _lastNameController.text.trim();
                 final password = _passwordController.text.trim();
-                final ageText = _ageController.text.trim();
-                final district = _districtController.text.trim();
-                final region = _selectedRegion;
+                final confirmPassword = _confirmPasswordController.text.trim();
                 
-                if (phone.isEmpty || firstName.isEmpty || lastName.isEmpty || password.isEmpty || ageText.isEmpty || district.isEmpty || region == null) {
+                if (phone.isEmpty || firstName.isEmpty || lastName.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('fill_all_fields'.tr),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return;
+                }
+
+                final phoneDigits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+                if (phoneDigits.length < 9 || (phone.startsWith('+998') && phoneDigits.length < 12)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('enter_valid_phone'.tr),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return;
+                }
+
+                if (firstName.length < 2 || lastName.length < 2) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('enter_valid_name'.tr),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
@@ -211,21 +217,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return;
                 }
 
-                if (!_acceptedPrivacyPolicy) {
+                if (password != confirmPassword) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('agree_policy'.tr),
+                      content: Text('passwords_mismatch'.tr),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
                   return;
                 }
 
-                int? age = int.tryParse(ageText);
-                if (age == null || age < 15) {
+                if (!_acceptedPrivacyPolicy) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('age_min_15'.tr),
+                      content: Text('agree_policy'.tr),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
@@ -241,12 +246,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 if (response['success'] != true) {
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(response['message'] ?? 'error'.tr),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
+                  final msg = response['message']?.toString() ?? 'error'.tr;
+                  final isDuplicate = msg.toLowerCase().contains('allaqachon') || 
+                                      msg.toLowerCase().contains('уже') || 
+                                      msg.toLowerCase().contains('already') ||
+                                      msg.toLowerCase().contains('exists');
+                  
+                  if (isDuplicate) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        title: Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Colors.orange),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text('account_exists_title'.tr, style: const TextStyle(fontSize: 18))),
+                          ],
+                        ),
+                        content: Text('account_exists_desc'.tr),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              Navigator.push(context, MaterialPageRoute(builder: (c) => const ForgotPasswordScreen()));
+                            },
+                            child: Text('forgot_password'.tr),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              Navigator.pop(context);
+                            },
+                            child: Text('login_btn'.tr),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(msg),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
                   return;
                 }
 
@@ -261,9 +305,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       isRegistration: true,
                       firstName: firstName,
                       lastName: lastName,
-                      age: age,
-                      region: region,
-                      district: district,
                     ),
                   ),
                 );
@@ -275,6 +316,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
       ),
+    ),
+    ),
     );
   }
 }

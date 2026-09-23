@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
-
+import '../../../core/localization/app_localizations.dart';
 
 class PurchasesScreen extends StatefulWidget {
   const PurchasesScreen({super.key});
@@ -36,7 +36,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         if (response['success'] == true) {
           _purchases = response['data'] ?? [];
         } else {
-          _error = response['message'] ?? 'Xatolik yuz berdi';
+          _error = response['message'] ?? 'error'.tr;
         }
       });
     }
@@ -58,7 +58,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Mening xaridlarim', style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text('my_purchases'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
       body: _isLoading
@@ -68,7 +68,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               : _purchases.isEmpty
                   ? Center(
                       child: Text(
-                        "Hozircha xaridlar yo'q",
+                        'no_purchases'.tr,
                         style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 16),
                       ),
                     )
@@ -80,7 +80,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                         itemBuilder: (context, index) {
                           final purchase = _purchases[index];
                           final gift = purchase['gift'] ?? {};
-                          final giftName = gift['name'] ?? 'Sovg\'a';
+                          final giftName = gift['name'] ?? 'unknown_gift'.tr;
                           final points = purchase['pointsSpent'] ?? 0;
                           final status = purchase['status'] ?? 'PENDING';
                           final dateStr = purchase['purchaseDate'] ?? '';
@@ -97,8 +97,8 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                             formattedDate = dateStr;
                           }
 
-                          final isApproved = status == 'APPROVED';
-                          final statusText = isApproved ? 'Topshirildi' : 'Kutmoqda';
+                          final isApproved = status == 'APPROVED' || status == 'DELIVERED';
+                          final statusText = isApproved ? 'status_delivered'.tr : 'status_pending'.tr;
                           final statusColor = isApproved ? Colors.green : Colors.orangeAccent;
 
                           return Container(
@@ -157,7 +157,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      '-$points ball',
+                                      '-$points ${'points_unit'.tr}',
                                       style: TextStyle(
                                         color: theme.colorScheme.primary,
                                         fontSize: 14,

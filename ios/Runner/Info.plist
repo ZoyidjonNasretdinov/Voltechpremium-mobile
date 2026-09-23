@@ -49,6 +49,8 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -56,8 +58,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -67,9 +67,9 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Profil rasmini yuklash uchun galereyaga ruxsat kerak.</string>
+	<string>Photo library access is needed to select and upload your profile picture.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>QR kodlarni skanerlash va profil rasmini yuklash uchun kameraga ruxsat kerak.</string>
+	<string>Camera access is needed to scan QR codes on purchased products to earn loyalty points.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>

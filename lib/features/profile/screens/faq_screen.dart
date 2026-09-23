@@ -27,13 +27,19 @@ class FaqScreen extends StatelessWidget {
             title: Text('faq'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
             centerTitle: true,
           ),
-          body: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              _buildFaqItem('faq_q1'.tr, 'faq_a1'.tr, cardColor, textColor, subTextColor),
-              _buildFaqItem('faq_q2'.tr, 'faq_a2'.tr, cardColor, textColor, subTextColor),
-              _buildFaqItem('faq_q3'.tr, 'faq_a3'.tr, cardColor, textColor, subTextColor),
-            ],
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                children: [
+                  _buildFaqItem('faq_q1'.tr, 'faq_a1'.tr, cardColor, textColor, subTextColor),
+                  _buildFaqItem('faq_q2'.tr, 'faq_a2'.tr, cardColor, textColor, subTextColor),
+                  _buildFaqItem('faq_q3'.tr, 'faq_a3'.tr, cardColor, textColor, subTextColor),
+                ],
+              ),
+            ),
           ),
         );
       },

@@ -54,8 +54,8 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
     setState(() => _isLoading = false);
 
     if (response['success'] == true) {
-      final status = response['data']['status'];
-      if (status == 'ACTIVE') {
+      final status = response['data']?['status'];
+      if (status == 'APPROVED' || status == 'ACTIVE') {
         if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainNavigation()),

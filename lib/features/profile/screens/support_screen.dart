@@ -41,7 +41,7 @@ class _SupportScreenState extends State<SupportScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Telefon raqamni ochib bo'lmadi"), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text('cant_call_phone'.tr), backgroundColor: Colors.redAccent),
         );
       }
     }
@@ -75,48 +75,54 @@ class _SupportScreenState extends State<SupportScreen> {
                     children: [
                       Icon(CupertinoIcons.phone_circle, size: 64, color: textColor.withValues(alpha: 0.3)),
                       const SizedBox(height: 16),
-                      Text("Hozircha bog'lanish uchun raqamlar yo'q", style: TextStyle(color: textColor.withValues(alpha: 0.6))),
+                      Text('no_support_numbers'.tr, style: TextStyle(color: textColor.withValues(alpha: 0.6))),
                     ],
                   ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: _phoneNumbers.length,
-                  itemBuilder: (context, index) {
-                    final phoneObj = _phoneNumbers[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ]
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        leading: Container(
-                          padding: const EdgeInsets.all(10),
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      itemCount: _phoneNumbers.length,
+                      itemBuilder: (context, index) {
+                        final phoneObj = _phoneNumbers[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
                           ),
-                          child: Icon(Icons.support_agent, color: theme.colorScheme.primary),
-                        ),
-                        title: Text(phoneObj['name'] ?? 'Admin', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-                        subtitle: Text(phoneObj['phoneNumber'] ?? '', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 15)),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.phone, color: Colors.green),
-                          onPressed: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
-                        ),
-                        onTap: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
-                      ),
-                    );
-                  },
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.support_agent, color: theme.colorScheme.primary),
+                            ),
+                            title: Text(phoneObj['name'] ?? 'Admin', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                            subtitle: Text(phoneObj['phoneNumber'] ?? '', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 15)),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.phone, color: Colors.green),
+                              onPressed: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
+                            ),
+                            onTap: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
     );
   }

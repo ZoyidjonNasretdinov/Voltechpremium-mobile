@@ -42,7 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     final token = await _apiService.getToken();
-    if (token == null || !mounted) return;
+    if (token == null || !mounted) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
     setState(() => _isLoading = true);
     
@@ -185,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 Text(
-                  _profileData != null ? '${_profileData!['firstName']} ${_profileData!['lastName']}' : 'Yuklanmoqda...',
+                  _profileData != null ? '${_profileData!['firstName']} ${_profileData!['lastName']}' : 'loading'.tr,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ],
@@ -261,9 +264,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: RefreshIndicator(
             onRefresh: _loadData,
-            child: _isLoading ? const Center(child: CircularProgressIndicator()) : ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
+            child: _isLoading 
+                ? const Center(child: CircularProgressIndicator()) 
+                : Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 680),
+                      child: ListView(
+                        padding: const EdgeInsets.all(16.0),
+                        children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -333,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             title: Text(
-                              description.isNotEmpty ? description : (isEarned ? 'Ball to\'plandi' : 'Ball sarflandi'),
+                              description.isNotEmpty ? description : (isEarned ? 'points_earned'.tr : 'points_spent'.tr),
                               style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -355,6 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
+            ),
+          ),
           ),
         );
       },

@@ -7,12 +7,21 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://voltechpremiumbackend-api-production.up.railway.app/api';
+  // Production: 'https://voltechpremiumbackend-api-production.up.railway.app/api'
+  static const String baseUrl = 'http://localhost:8080/api';
+  static const Duration _requestTimeout = Duration(seconds: 25);
   final _secureStorage = const FlutterSecureStorage();
 
   static String? resolveImageUrl(String? path) {
     if (path == null || path.trim().isEmpty) return null;
     final trimmed = path.trim();
+    if (trimmed.contains('storage.googleapis.com')) {
+      final uri = Uri.tryParse(trimmed);
+      if (uri != null && uri.pathSegments.isNotEmpty) {
+        final fileName = uri.pathSegments.last;
+        return '$baseUrl/files/download/$fileName';
+      }
+    }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
@@ -43,6 +52,20 @@ class ApiService {
       if (connectivityResult.contains(ConnectivityResult.none)) return false;
       return true;
     } catch (_) { return true; }
+  }
+
+  String _formatNetworkError(dynamic e) {
+    final str = e.toString().toLowerCase();
+    if (str.contains('socketexception') || 
+        str.contains('connection refused') || 
+        str.contains('failed host lookup') ||
+        str.contains('network is unreachable')) {
+      return "Internet aloqasi mavjud emas. Internetni tekshirib, qayta urinib ko'ring.";
+    }
+    if (str.contains('timeoutexception') || str.contains('timed out')) {
+      return "Server javob berish vaqti tugadi. Qayta urinib ko'ring.";
+    }
+    return "Tarmoq xatosi yuz berdi. Iltimos, qayta urinib ko'ring.";
   }
 
   static bool _isNavigatingToLogin = false;
@@ -144,10 +167,10 @@ class ApiService {
 
   Future<http.Response> _sendInternal(String method, Uri url, {Map<String, String>? headers, Object? body}) async {
     switch (method) {
-      case 'GET': return await http.get(url, headers: headers);
-      case 'POST': return await http.post(url, headers: headers, body: body);
-      case 'PUT': return await http.put(url, headers: headers, body: body);
-      case 'DELETE': return await http.delete(url, headers: headers, body: body);
+      case 'GET': return await http.get(url, headers: headers).timeout(_requestTimeout);
+      case 'POST': return await http.post(url, headers: headers, body: body).timeout(_requestTimeout);
+      case 'PUT': return await http.put(url, headers: headers, body: body).timeout(_requestTimeout);
+      case 'DELETE': return await http.delete(url, headers: headers, body: body).timeout(_requestTimeout);
       default: throw UnimplementedError();
     }
   }
@@ -164,37 +187,35 @@ class ApiService {
 
   Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet aloqasi mavjud emas. Internetni tekshirib, qayta urinib ko'ring."};
       final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/login'), body: jsonEncode({
         'phoneNumber': phone,
         'password': password,
       }), requiresAuth: false);
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
         _saveAuthData(data);
         return {'success': true, 'data': data};
       } else {
-        return {'success': false, 'message': 'Telefon raqam yoki parol noto\'g\'ri'};
+        String msg = 'Telefon raqam yoki parol noto\'g\'ri';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData is Map && errorData['message'] != null && errorData['message'].toString().isNotEmpty) {
+            msg = errorData['message'].toString();
+          }
+        } catch (_) {}
+        return {'success': false, 'message': msg};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+      return {'success': false, 'message': _formatNetworkError(e)};
     }
   }
 
   Future<Map<String, dynamic>> sendSms(String phone) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet aloqasi mavjud emas. Internetni tekshirib, qayta urinib ko'ring."};
       final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/send-sms'), body: jsonEncode({'phoneNumber': phone}), requiresAuth: false);
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': _safeDecode(response.body)};
       } else {
@@ -206,18 +227,14 @@ class ApiService {
         }
       }
     } catch (e) {
-      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+      return {'success': false, 'message': _formatNetworkError(e)};
     }
   }
 
   Future<Map<String, dynamic>> verifySms(String phone, String code) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet aloqasi mavjud emas. Internetni tekshirib, qayta urinib ko'ring."};
       final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/verify-sms'), body: jsonEncode({'phoneNumber': phone, 'verificationCode': code}), requiresAuth: false);
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
         _saveAuthData(data);
@@ -231,25 +248,26 @@ class ApiService {
         }
       }
     } catch (e) {
-      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+      return {'success': false, 'message': _formatNetworkError(e)};
     }
   }
 
   Future<Map<String, dynamic>> forgotPasswordSendSms(String phone) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
+      if (!await _hasConnection()) return {"success": false, "message": "Internet aloqasi mavjud emas. Internetni tekshirib, qayta urinib ko'ring."};
       final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/forgot-password/send-sms'), body: jsonEncode({'phoneNumber': phone}), requiresAuth: false);
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': _safeDecode(response.body)};
       } else {
-        return {'success': false, 'message': 'SMS yuborishda xatolik'};
+        try {
+          final errorData = jsonDecode(response.body);
+          return {'success': false, 'message': errorData['message'] ?? 'SMS yuborishda xatolik'};
+        } catch (_) {
+          return {'success': false, 'message': 'SMS yuborishda xatolik'};
+        }
       }
     } catch (e) {
-      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+      return {'success': false, 'message': _formatNetworkError(e)};
     }
   }
 
@@ -257,14 +275,15 @@ class ApiService {
     try {
       if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
       final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/forgot-password/reset'), body: jsonEncode({'phoneNumber': phone, 'verificationCode': code, 'newPassword': newPassword}), requiresAuth: false);
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {'success': true, 'data': _safeDecode(response.body)};
       } else {
-        return {'success': false, 'message': 'Parolni tiklashda xatolik'};
+        try {
+          final errorData = jsonDecode(response.body);
+          return {'success': false, 'message': errorData['message'] ?? 'Parolni tiklashda xatolik'};
+        } catch (_) {
+          return {'success': false, 'message': 'Parolni tiklashda xatolik'};
+        }
       }
     } catch (e) {
       return {'success': false, 'message': 'Tarmoq xatosi: $e'};
@@ -295,20 +314,22 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateProfile(
     String firstName, 
-    String lastName, 
-    int age, 
-    String region, 
-    String district
-  ) async {
+    String lastName, {
+    int? age, 
+    String? region, 
+    String? district,
+  }) async {
     try {
       if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
-      final response = await _sendWithRetry('PUT', Uri.parse('$baseUrl/v1/profile'), body: jsonEncode({
+      final Map<String, dynamic> requestBody = {
         'firstName': firstName,
         'lastName': lastName,
-        'age': age,
-        'region': region,
-        'district': district,
-      }), requiresAuth: true);
+      };
+      if (age != null) requestBody['age'] = age;
+      if (region != null && region.isNotEmpty) requestBody['region'] = region;
+      if (district != null && district.isNotEmpty) requestBody['district'] = district;
+
+      final response = await _sendWithRetry('PUT', Uri.parse('$baseUrl/v1/profile'), body: jsonEncode(requestBody), requiresAuth: true);
       
       if (response.statusCode == 401 || response.statusCode == 403) return {"success": false, "message": "Sessiya tugadi"};
 
@@ -331,27 +352,24 @@ class ApiService {
     String phone, 
     String password, 
     String firstName, 
-    String lastName, 
-    int age, 
-    String region, 
-    String district
-  ) async {
+    String lastName, {
+    int? age, 
+    String? region, 
+    String? district,
+  }) async {
     try {
-      if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
-      final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/register'), body: jsonEncode({
+      if (!await _hasConnection()) return {"success": false, "message": "Internet aloqasi mavjud emas. Internetni tekshirib, qayta urinib ko'ring."};
+      final Map<String, dynamic> requestBody = {
         'phoneNumber': phone,
         'password': password,
         'firstName': firstName,
         'lastName': lastName,
-        'age': age,
-        'region': region,
-        'district': district,
-      }), requiresAuth: false);
+      };
+      if (age != null) requestBody['age'] = age;
+      if (region != null && region.isNotEmpty) requestBody['region'] = region;
+      if (district != null && district.isNotEmpty) requestBody['district'] = district;
 
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
+      final response = await _sendWithRetry('POST', Uri.parse('$baseUrl/auth/register'), body: jsonEncode(requestBody), requiresAuth: false);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = _safeDecode(response.body);
@@ -366,7 +384,7 @@ class ApiService {
         }
       }
     } catch (e) {
-      return {'success': false, 'message': 'Tarmoq xatosi: $e'};
+      return {'success': false, 'message': _formatNetworkError(e)};
     }
   }
 
@@ -403,7 +421,7 @@ class ApiService {
       if (response.statusCode == 401 || response.statusCode == 403) return {"success": false, "message": "Sessiya tugadi"};
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
+        final data = _safeDecode(response.body);
         return {'success': true, 'data': data};
       } else {
         try {
@@ -425,15 +443,12 @@ class ApiService {
   Future<Map<String, dynamic>> checkPublicQR(String qrCode) async {
     try {
       if (!await _hasConnection()) return {"success": false, "message": "Internet tarmog'iga ulaning"};
-      final response = await _sendWithRetry('GET', Uri.parse('$baseUrl/public/qr/$qrCode'), requiresAuth: false);
+      final safeCode = Uri.encodeComponent(qrCode.trim());
+      final response = await _sendWithRetry('GET', Uri.parse('$baseUrl/public/qr/$safeCode'), requiresAuth: false);
       
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        _handle401();
-        return {"success": false, "message": "Sessiya tugadi"};
-      }
-
       if (response.statusCode == 200) {
-        return {'success': true, 'data': jsonDecode(response.body)};
+        final data = _safeDecode(response.body);
+        return {'success': true, 'data': data};
       } else {
         try {
           final errorData = jsonDecode(response.body);

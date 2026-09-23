@@ -47,6 +47,8 @@ test/*.apk
 test/*.ipa
 android/build/
 *.ipa
+*.mp4
+*.mov
 _flutter/
 flutter/
 public/

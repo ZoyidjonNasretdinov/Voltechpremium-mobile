@@ -67,6 +67,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   }
 
   Future<void> _verify() async {
+    if (_isLoading) return;
     FocusScope.of(context).unfocus();
     final code = _codeController.text.trim();
     if (code.length != 6) {
@@ -77,6 +78,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     }
 
     setState(() => _isLoading = true);
+    bool isPending = false;
     
     if (widget.isRegistration) {
       // 1. Verify SMS code
@@ -85,6 +87,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       if (verifyResponse['success'] != true) {
         if (!mounted) return;
         setState(() => _isLoading = false);
+        _codeController.clear();
+        _focusNode.requestFocus();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(verifyResponse['message'] ?? "Kod noto'g'ri"),
@@ -101,9 +105,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           widget.password!,
           widget.firstName!,
           widget.lastName!,
-          widget.age!,
-          widget.region!,
-          widget.district!
+          age: widget.age,
+          region: widget.region,
+          district: widget.district,
         );
         
         if (registerResponse['success'] != true) {
@@ -119,6 +123,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         }
         
         await _apiService.login(widget.phone, widget.password!);
+
+        // Check user's actual approval status
+        final profileRes = await _apiService.getProfile();
+        if (profileRes['success'] == true &&
+            profileRes['data'] != null &&
+            profileRes['data']['status'] == 'PENDING') {
+          isPending = true;
+        }
       }
     } else {
       // Forgot Password Flow
@@ -128,6 +140,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         if (resetResponse['success'] != true) {
           if (!mounted) return;
           setState(() => _isLoading = false);
+          _codeController.clear();
+          _focusNode.requestFocus();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(resetResponse['message'] ?? "Kod noto'g'ri yoki xatolik yuz berdi"),
@@ -142,8 +156,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       }
     }
 
-    // Logic handled above
-
     if (!mounted) return;
     setState(() => _isLoading = false);
     
@@ -155,7 +167,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     );
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (context) => widget.isRegistration 
+        builder: (context) => isPending 
           ? const PendingApprovalScreen() 
           : const MainNavigation()
       ),
@@ -172,102 +184,110 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         title: Text('verify_code'.tr),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'enter_6_digit'.tr,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Raqam: ${widget.phone}',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-              
-              // Pinput 6-digit OTP Input
-              Pinput(
-                length: 6,
-                controller: _codeController,
-                focusNode: _focusNode,
-                autofocus: true,
-                onCompleted: (pin) => _verify(),
-                defaultPinTheme: PinTheme(
-                  width: 45,
-                  height: 55,
-                  textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'enter_6_digit'.tr,
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                focusedPinTheme: PinTheme(
-                  width: 45,
-                  height: 55,
-                  textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.colorScheme.primary, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      )
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    '${'phone_number_label'.tr} ${widget.phone}',
+                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                submittedPinTheme: PinTheme(
-                  width: 45,
-                  height: 55,
-                  textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                  const SizedBox(height: 40),
+                  
+                  // Pinput 6-digit OTP Input
+                  Center(
+                    child: Pinput(
+                      length: 6,
+                      controller: _codeController,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      onCompleted: (pin) => _verify(),
+                      defaultPinTheme: PinTheme(
+                        width: 45,
+                        height: 55,
+                        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+                        ),
+                      ),
+                      focusedPinTheme: PinTheme(
+                        width: 45,
+                        height: 55,
+                        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.colorScheme.primary, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            )
+                          ],
+                        ),
+                      ),
+                      submittedPinTheme: PinTheme(
+                        width: 45,
+                        height: 55,
+                        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _verify,
+                    child: _isLoading
+                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
+                        : Text('confirm'.tr),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: (_secondsRemaining == 0 && !_isLoading) 
+                      ? () async {
+                          FocusScope.of(context).unfocus();
+                          setState(() => _isLoading = true);
+                          final response = widget.isRegistration 
+                            ? await _apiService.sendSms(widget.phone)
+                            : await _apiService.forgotPasswordSendSms(widget.phone);
+                            
+                          if (!mounted) return;
+                          setState(() => _isLoading = false);
+                          if (response['success'] == true) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('code_resent'.tr), backgroundColor: Colors.green));
+                            _startTimer();
+                          } else {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Xatolik"), backgroundColor: Colors.redAccent));
+                          }
+                        } 
+                      : null,
+                    child: Text(_secondsRemaining > 0 ? "${'send_code'.tr} ($_secondsRemaining s)" : 'send_code'.tr),
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _verify,
-                child: _isLoading
-                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                    : Text('confirm'.tr),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _secondsRemaining == 0 
-                  ? () async {
-                      FocusScope.of(context).unfocus();
-                      setState(() => _isLoading = true);
-                      final response = widget.isRegistration 
-                        ? await _apiService.sendSms(widget.phone)
-                        : await _apiService.forgotPasswordSendSms(widget.phone);
-                        
-                      if (!mounted) return;
-                      setState(() => _isLoading = false);
-                      if (response['success'] == true) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('code_resent'.tr), backgroundColor: Colors.green));
-                        _startTimer();
-                      } else {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Xatolik"), backgroundColor: Colors.redAccent));
-                      }
-                    } 
-                  : null,
-                child: Text(_secondsRemaining > 0 ? "${'send_code'.tr} ($_secondsRemaining s)" : 'send_code'.tr),
-              ),
-            ],
+            ),
           ),
         ),
       ),

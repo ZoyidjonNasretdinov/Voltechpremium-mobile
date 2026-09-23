@@ -68,89 +68,95 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               : _transactions.isEmpty
                   ? Center(
                       child: Text(
-                        "Hozircha ballar tarixi yo'q",
+                        'no_transactions'.tr,
                         style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 16),
                       ),
                     )
                   : RefreshIndicator(
                       onRefresh: _loadTransactions,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _transactions.length,
-                        itemBuilder: (context, index) {
-                          final tx = _transactions[index];
-                          final isEarned = tx['type'] == 'EARNED';
-                          final dateStr = tx['date'] ?? '';
-                          String formattedDate = '';
-                          try {
-                            if (dateStr.isNotEmpty) {
-                              String dStr = dateStr;
-                              if (!dStr.endsWith('Z')) dStr += 'Z';
-                              final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
-                              formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
-                            }
-                          } catch (e) {
-                            formattedDate = dateStr;
-                          }
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 680),
+                          child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                            itemCount: _transactions.length,
+                            itemBuilder: (context, index) {
+                              final tx = _transactions[index];
+                              final isEarned = tx['type'] == 'EARNED';
+                              final dateStr = tx['date'] ?? '';
+                              String formattedDate = '';
+                              try {
+                                if (dateStr.isNotEmpty) {
+                                  String dStr = dateStr;
+                                  if (!dStr.endsWith('Z')) dStr += 'Z';
+                                  final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
+                                  formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
+                                }
+                              } catch (e) {
+                                formattedDate = dateStr;
+                              }
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isEarned 
-                                        ? Colors.green.withValues(alpha: 0.1) 
-                                        : Colors.redAccent.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isEarned ? Icons.add_circle_outline : Icons.remove_circle_outline,
-                                    color: isEarned ? Colors.green : Colors.redAccent,
-                                  ),
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        tx['description'] ?? (isEarned ? 'Ball qo\'shildi' : 'Ball sarflandi'),
-                                        style: TextStyle(
-                                          color: textColor,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: isEarned 
+                                            ? Colors.green.withValues(alpha: 0.1) 
+                                            : Colors.redAccent.withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        formattedDate,
-                                        style: TextStyle(
-                                          color: textColor.withValues(alpha: 0.5),
-                                          fontSize: 13,
-                                        ),
+                                      child: Icon(
+                                        isEarned ? Icons.add_circle_outline : Icons.remove_circle_outline,
+                                        color: isEarned ? Colors.green : Colors.redAccent,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            tx['description'] ?? (isEarned ? 'points_earned'.tr : 'points_spent'.tr),
+                                            style: TextStyle(
+                                              color: textColor,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            formattedDate,
+                                            style: TextStyle(
+                                              color: textColor.withValues(alpha: 0.5),
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      '${isEarned ? '+' : '-'}${tx['points'] ?? 0}',
+                                      style: TextStyle(
+                                        color: isEarned ? Colors.green : Colors.redAccent,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  '${isEarned ? '+' : '-'}${tx['points'] ?? 0}',
-                                  style: TextStyle(
-                                    color: isEarned ? Colors.green : Colors.redAccent,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
     );

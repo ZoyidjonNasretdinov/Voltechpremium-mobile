@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -14,13 +15,11 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
-  late TextEditingController _ageController;
-  late TextEditingController _regionController;
-  late TextEditingController _districtController;
   
   bool _isLoading = false;
   bool _isUploadingImage = false;
   String? _currentImageUrl;
+  Uint8List? _localAvatarBytes;
   final ApiService _apiService = ApiService();
   final ImagePicker _picker = ImagePicker();
 
@@ -29,9 +28,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _firstNameController = TextEditingController(text: widget.profileData?['firstName'] ?? '');
     _lastNameController = TextEditingController(text: widget.profileData?['lastName'] ?? '');
-    _ageController = TextEditingController(text: widget.profileData?['age']?.toString() ?? '');
-    _regionController = TextEditingController(text: widget.profileData?['region'] ?? '');
-    _districtController = TextEditingController(text: widget.profileData?['district'] ?? '');
     _currentImageUrl = widget.profileData?['imageUrl'];
     if (widget.profileData == null || widget.profileData!.isEmpty) {
       _loadProfileData();
@@ -46,9 +42,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() {
         _firstNameController.text = data['firstName'] ?? '';
         _lastNameController.text = data['lastName'] ?? '';
-        _ageController.text = data['age']?.toString() ?? '';
-        _regionController.text = data['region'] ?? '';
-        _districtController.text = data['district'] ?? '';
         _currentImageUrl = data['imageUrl'];
         _isLoading = false;
       });
@@ -61,9 +54,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _ageController.dispose();
-    _regionController.dispose();
-    _districtController.dispose();
     super.dispose();
   }
 
@@ -72,10 +62,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
       if (image == null) return;
 
-      setState(() => _isUploadingImage = true);
-
       final bytes = await image.readAsBytes();
       final filename = image.name.isNotEmpty ? image.name : 'avatar.jpg';
+
+      setState(() {
+        _localAvatarBytes = bytes;
+        _isUploadingImage = true;
+      });
 
       final response = await _apiService.uploadProfileImageBytes(bytes, filename);
 
@@ -121,24 +114,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
-    final ageText = _ageController.text.trim();
-    final region = _regionController.text.trim();
-    final district = _districtController.text.trim();
 
-    if (firstName.isEmpty || lastName.isEmpty || ageText.isEmpty || region.isEmpty || district.isEmpty) {
+    if (firstName.isEmpty || lastName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('fill_all_fields'.tr), backgroundColor: Colors.redAccent));
-      return;
-    }
-
-    final age = int.tryParse(ageText);
-    if (age == null || age < 15) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('age_min_15'.tr), backgroundColor: Colors.redAccent));
       return;
     }
 
     setState(() => _isLoading = true);
 
-    final response = await _apiService.updateProfile(firstName, lastName, age, region, district);
+    final response = await _apiService.updateProfile(
+      firstName, 
+      lastName, 
+    );
     
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -217,21 +204,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: ClipOval(
                                 child: Container(
                                   color: accentColor.withValues(alpha: 0.1),
-                                  child: _isUploadingImage
-                                      ? const Center(child: CircularProgressIndicator(strokeWidth: 2.5))
-                                      : (_currentImageUrl != null &&
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    fit: StackFit.expand,
+                                    children: [
+                                      if (_localAvatarBytes != null)
+                                        Image.memory(
+                                          _localAvatarBytes!,
+                                          fit: BoxFit.cover,
+                                          width: 112,
+                                          height: 112,
+                                        )
+                                      else if (_currentImageUrl != null &&
                                               _currentImageUrl!.isNotEmpty &&
                                               ApiService.resolveImageUrl(_currentImageUrl) != null)
-                                          ? Image.network(
-                                              ApiService.resolveImageUrl(_currentImageUrl)!,
-                                              fit: BoxFit.cover,
-                                              width: 112,
-                                              height: 112,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70);
-                                              },
-                                            )
-                                          : Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70),
+                                        Image.network(
+                                          ApiService.resolveImageUrl(_currentImageUrl)!,
+                                          fit: BoxFit.cover,
+                                          width: 112,
+                                          height: 112,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70);
+                                          },
+                                        )
+                                      else
+                                        Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70),
+                                      if (_isUploadingImage)
+                                        Container(
+                                          color: Colors.black.withValues(alpha: 0.45),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -267,82 +276,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 540),
                     child: Column(
                       children: [
-                        _buildTextField('first_name'.tr, _firstNameController, Icons.person_outline, theme),
-                        _buildTextField('last_name'.tr, _lastNameController, Icons.person_outline, theme),
-                        _buildTextField('age'.tr, _ageController, Icons.cake_outlined, theme, keyboardType: TextInputType.number),
-                        _buildTextField('select_region'.tr, _regionController, Icons.map_outlined, theme),
-                        _buildTextField('district'.tr, _districtController, Icons.location_city_outlined, theme),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              _buildTextField('first_name'.tr, _firstNameController, Icons.person_outline, theme),
+                              _buildTextField('last_name'.tr, _lastNameController, Icons.person_outline, theme),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: accentColor,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                              minimumSize: const Size(double.infinity, 56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 4,
+                              shadowColor: accentColor.withValues(alpha: 0.5),
+                            ),
+                            child: _isLoading 
+                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                              : Text('save_changes'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                        foregroundColor: theme.colorScheme.onPrimary,
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 4,
-                        shadowColor: accentColor.withValues(alpha: 0.5),
-                      ),
-                      child: _isLoading 
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                        : Text('save_changes'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          backgroundColor: theme.scaffoldBackgroundColor,
-                          title: Text('delete_account'.tr, style: TextStyle(color: theme.colorScheme.onSurface)),
-                          content: Text('delete_account_confirm'.tr, style: TextStyle(color: theme.colorScheme.onSurface)),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: Text('cancel'.tr, style: const TextStyle(color: Colors.grey)),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(dialogContext);
-                                setState(() => _isLoading = true);
-                                final response = await _apiService.deleteAccount();
-                                if (!mounted || !context.mounted) return;
-                                setState(() => _isLoading = false);
-                                if (response['success'] == true) {
-                                  // Navigate to login or splash and clear history
-                                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? 'error'.tr), backgroundColor: Colors.redAccent));
-                                }
-                              },
-                              child: Text('delete_account'.tr, style: const TextStyle(color: Colors.redAccent)),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                    ),
-                    child: Text('delete_account'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                  ),
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
         );
       },
     );

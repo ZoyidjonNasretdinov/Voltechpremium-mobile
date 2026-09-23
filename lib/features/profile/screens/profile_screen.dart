@@ -60,6 +60,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showDeleteAccountDialog(BuildContext context, ThemeData theme) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(CupertinoIcons.exclamationmark_triangle_fill, color: Colors.redAccent, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'delete_account'.tr, 
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'delete_account_confirm'.tr,
+          style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('cancel'.tr, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              setState(() => _isLoading = true);
+              final response = await _apiService.deleteAccount();
+              if (!mounted) return;
+              setState(() => _isLoading = false);
+              if (response['success'] == true) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('account_deleted_success'.tr),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              } else {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(response['message'] ?? 'error'.tr),
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: Text('delete_account'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(
@@ -88,8 +155,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? const Center(child: CircularProgressIndicator()) 
         : RefreshIndicator(
             onRefresh: _loadProfile,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 580),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
@@ -141,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(height: 4),
                                   Text(_profileData?['phoneNumber'] ?? '', style: TextStyle(color: subTextColor, fontSize: 13)),
                                   const SizedBox(height: 4),
-                                  Text('${_profileData?['totalBonusPoints'] ?? 0} ball', style: TextStyle(color: accentColor, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  Text('${_profileData?['totalBonusPoints'] ?? 0} ${'points_unit'.tr}', style: TextStyle(color: accentColor, fontSize: 14, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -226,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           trailing: Switch(
                             value: isDark,
                             onChanged: (v) {
-                              themeNotifier.value = v ? ThemeMode.dark : ThemeMode.light;
+                              setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
                             },
                             activeThumbColor: theme.colorScheme.onPrimary,
                             activeTrackColor: accentColor,
@@ -250,9 +320,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: TextStyle(color: textColor, fontSize: 14),
                         onChanged: (String? newValue) {
                           if (newValue != null) {
-                            setState(() {
-                              localeNotifier.value = newValue;
-                            });
+                            setAppLocale(newValue);
                           }
                         },
                         items: const [
@@ -312,6 +380,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const PolicyScreen()));
                       },
                     ),
+                    _buildDivider(subTextColor),
+                    _buildSettingsTile(
+                      icon: CupertinoIcons.trash,
+                      title: 'delete_account'.tr,
+                      textColor: Colors.redAccent,
+                      subTextColor: subTextColor,
+                      onTap: () => _showDeleteAccountDialog(context, theme),
+                    ),
                   ],
                 ),
               ),
@@ -326,10 +402,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.brightness == Brightness.dark ? Colors.white : Colors.redAccent.withValues(alpha: 0.1),
+                  backgroundColor: theme.brightness == Brightness.dark
+                      ? Colors.redAccent.withValues(alpha: 0.15)
+                      : Colors.redAccent.withValues(alpha: 0.1),
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),
+                    side: theme.brightness == Brightness.dark
+                        ? BorderSide(color: Colors.redAccent.withValues(alpha: 0.3), width: 1)
+                        : BorderSide.none,
                   ),
                   elevation: 0,
                 ),
@@ -347,6 +428,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+    ),
+    ),
     ));
     },
     );

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'core/localization/app_localizations.dart';
 import 'features/splash/screens/splash_screen.dart';
@@ -9,7 +11,39 @@ import 'features/auth/screens/login_screen.dart';
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+Future<void> setThemeMode(ThemeMode mode) async {
+  if (themeNotifier.value != mode) {
+    themeNotifier.value = mode;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('app_theme_mode', mode == ThemeMode.light ? 'light' : 'dark');
+    } catch (_) {}
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock orientation to portrait on iOS/phones for consistent Apple HIG compliant UX
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTheme = prefs.getString('app_theme_mode');
+    if (savedTheme == 'light') {
+      themeNotifier.value = ThemeMode.light;
+    } else if (savedTheme == 'dark') {
+      themeNotifier.value = ThemeMode.dark;
+    }
+
+    final savedLocale = prefs.getString('app_locale');
+    if (savedLocale != null && ['uz', 'ru', 'en'].contains(savedLocale)) {
+      localeNotifier.value = savedLocale;
+    }
+  } catch (_) {}
+
   runApp(const LoyaltyApp());
 }
 

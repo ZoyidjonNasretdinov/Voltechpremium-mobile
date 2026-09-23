@@ -208,7 +208,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           } else {
             // Unregistered user scanning
             final data = response['data'];
-            final productName = data['name'] ?? 'Mahsulot';
+            final productName = data['name'] ?? 'product'.tr;
             final desc = data['description'] ?? '';
             final points = data['bonusPoints'] ?? 0;
             final scanCount = data['scanCount'] ?? 0;
@@ -276,11 +276,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               Text('status'.tr, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))),
                               const SizedBox(height: 4),
                               Text(
-                                scanCount == 0 ? 'status_inactive'.tr : 'status_active'.tr, 
+                                scanCount == 0 ? 'status_active'.tr : 'status_inactive'.tr, 
                                 style: TextStyle(
                                   fontSize: 18, 
                                   fontWeight: FontWeight.bold,
-                                  color: scanCount == 0 ? Colors.grey : Colors.green,
+                                  color: scanCount == 0 ? Colors.green : Colors.grey,
                                 ),
                               ),
                             ],
@@ -366,12 +366,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
           }
         } else {
           bool scannedBySelf = response['scannedBySelf'] == true;
-          
-          String errorMessage = scannedBySelf 
-              ? 'scanned_by_self'.tr 
-              : 'scanned_by_other'.tr;
-          
-          final isAdminContactNeeded = !scannedBySelf;
+          final backendMessage = response['message']?.toString().trim();
+          final hasBackendMessage = backendMessage != null && backendMessage.isNotEmpty;
+          String errorMessage = hasBackendMessage
+              ? backendMessage
+              : (scannedBySelf ? 'scanned_by_self'.tr : 'scanned_by_other'.tr);
+
+          final isAdminContactNeeded = !scannedBySelf && !hasBackendMessage;
           
           showDialog(
             context: context,

@@ -52,18 +52,38 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final profileRes = await apiService.getProfile();
       if (!mounted) return;
       
-      if (profileRes['success'] == true && profileRes['data'] != null && profileRes['data']['status'] == 'PENDING') {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const PendingApprovalScreen(),
-          ),
-        );
+      if (profileRes['success'] == true) {
+        if (profileRes['data'] != null && profileRes['data']['status'] == 'PENDING') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const PendingApprovalScreen(),
+            ),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const MainNavigation(),
+            ),
+          );
+        }
       } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigation(),
-          ),
-        );
+        final msg = profileRes['message']?.toString().toLowerCase() ?? '';
+        final isNetworkError = msg.contains('internet') || msg.contains('tarmoq');
+        if (isNetworkError) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const MainNavigation(),
+            ),
+          );
+        } else {
+          await apiService.logout();
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
+          );
+        }
       }
     } else {
       if (!mounted) return;

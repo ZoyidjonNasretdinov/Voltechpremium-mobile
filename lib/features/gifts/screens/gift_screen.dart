@@ -73,12 +73,12 @@ class _GiftScreenState extends State<GiftScreen> {
   Future<void> _purchaseGift(Map<String, dynamic> gift) async {
     final giftId = gift['id'] as int;
     final price = (gift['points'] ?? 0) as int;
-    final giftName = gift['name'] ?? "Noma'lum sovg'a";
+    final giftName = gift['name'] ?? 'unknown_gift'.tr;
 
     if (_userPoints < price) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Balansingizda yetarli ball yo'q! Kerakli ball: $price"),
+          content: Text("${'insufficient_points'.tr} (${'price'.tr}: $price)"),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -131,7 +131,7 @@ class _GiftScreenState extends State<GiftScreen> {
 
                 // Title
                 Text(
-                  "Sovg'ani olish",
+                  'get_gift_title'.tr,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -171,7 +171,7 @@ class _GiftScreenState extends State<GiftScreen> {
                           const Icon(Icons.bolt, color: primaryRed, size: 20),
                           const SizedBox(width: 4),
                           Text(
-                            "${NumberFormat('#,###').format(price).replaceAll(',', ' ')} ball",
+                            "${NumberFormat('#,###').format(price).replaceAll(',', ' ')} ${'points_unit'.tr}",
                             style: const TextStyle(
                               color: primaryRed,
                               fontSize: 17,
@@ -186,7 +186,7 @@ class _GiftScreenState extends State<GiftScreen> {
                 const SizedBox(height: 14),
 
                 Text(
-                  "Hisobingizdan belgilangan miqdordagi ball yechiladi va sovg'a buyurtmasi ma'muriyatga yuboriladi.",
+                  'gift_order_desc'.tr,
                   style: TextStyle(
                     fontSize: 13,
                     color: subTextColor,
@@ -292,7 +292,7 @@ class _GiftScreenState extends State<GiftScreen> {
     if (res['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Buyurtma adminga muvaffaqiyatli yuborildi!"),
+          content: Text('order_submitted_success'.tr),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -302,7 +302,7 @@ class _GiftScreenState extends State<GiftScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(res['message'] ?? "Xatolik yuz berdi"),
+          content: Text(res['message'] ?? 'order_submit_error'.tr),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -342,7 +342,7 @@ class _GiftScreenState extends State<GiftScreen> {
             actions: [
               IconButton(
                 icon: Icon(Icons.history_rounded, color: textColor, size: 22),
-                tooltip: 'Xaridlar tarixi',
+                tooltip: 'purchase_history'.tr,
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -451,7 +451,7 @@ class _GiftScreenState extends State<GiftScreen> {
                                 Icon(Icons.card_giftcard_rounded, size: 60, color: hintColor),
                                 const SizedBox(height: 12),
                                 Text(
-                                  "Hozircha sovg'alar mavjud emas",
+                                  'no_gifts_available'.tr,
                                   style: TextStyle(color: hintColor, fontSize: 15),
                                 ),
                               ],
@@ -468,7 +468,7 @@ class _GiftScreenState extends State<GiftScreen> {
                             itemCount: _filteredGifts.length,
                             itemBuilder: (context, index) {
                               final gift = _filteredGifts[index];
-                              final giftName = gift['name'] ?? "Noma'lum";
+                              final giftName = gift['name'] ?? 'unknown_gift'.tr;
                               final giftPoints = gift['points'] ?? 0;
                               final imageUrl = gift['imageUrl'];
 
@@ -550,7 +550,7 @@ class _GiftScreenState extends State<GiftScreen> {
                                                 ),
                                               ),
                                               Text(
-                                                ' ball',
+                                                ' ${'points_unit'.tr}',
                                                 style: TextStyle(
                                                   color: textColor.withValues(alpha: 0.6),
                                                   fontSize: 11,
@@ -575,9 +575,9 @@ class _GiftScreenState extends State<GiftScreen> {
                                                 ),
                                                 padding: EdgeInsets.zero,
                                               ),
-                                              child: const Text(
-                                                "Olish",
-                                                style: TextStyle(
+                                              child: Text(
+                                                'claim_gift'.tr,
+                                                style: const TextStyle(
                                                   fontSize: 12.5,
                                                   fontWeight: FontWeight.bold,
                                                 ),

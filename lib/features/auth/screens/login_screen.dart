@@ -285,9 +285,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         MaterialPageRoute(builder: (context) => const RegisterScreen()),
                                       );
                                     },
-                                    child: const Text(
-                                      'Ro\'yxatdan o\'tish',
-                                      style: TextStyle(
+                                    child: Text(
+                                      'register_btn'.tr,
+                                      style: const TextStyle(
                                         color: primaryRed,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
@@ -312,6 +312,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (_isLoading) return;
+    FocusScope.of(context).unfocus();
+
     final phone = _phoneController.text.replaceAll(' ', '');
     final password = _passwordController.text.trim();
 
