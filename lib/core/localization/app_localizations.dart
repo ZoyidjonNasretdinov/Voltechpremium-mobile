@@ -251,6 +251,10 @@ class AppLocalizations {
       'account_exists_desc':
           'Ushbu telefon raqami allaqachon ro\'yxatdan o\'tgan. Tizimga kirish yoki parolni tiklashni xohlaysizmi?',
       'invalid_credentials': 'Telefon raqam yoki parol xato',
+      'enter_phone_password': 'Telefon raqam va parolni kiriting',
+      'continue_btn': 'Davom etish',
+      'policy_subtitle':
+          'Voltech Premium sodiqlik dasturi va mobil ilovasidan foydalanish shartlari',
     },
     'ru': {
       'welcome': 'Добро пожаловать',
@@ -485,6 +489,9 @@ class AppLocalizations {
       'account_exists_desc':
           'Этот номер телефона уже зарегистрирован. Хотите войти или сбросить пароль?',
       'invalid_credentials': 'Неверный номер телефона или пароль',
+      'continue_btn': 'Продолжить',
+      'policy_subtitle':
+          'Условия использования программы лояльности и мобильного приложения Voltech Premium',
     },
     'en': {
       'welcome': 'Welcome',
@@ -719,6 +726,9 @@ class AppLocalizations {
       'account_exists_desc':
           'This phone number is already registered. Would you like to log in or reset your password?',
       'invalid_credentials': 'Invalid phone number or password',
+      'continue_btn': 'Continue',
+      'policy_subtitle':
+          'Terms and conditions for using the Voltech Premium loyalty app',
     },
   };
 
