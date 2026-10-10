@@ -458,6 +458,7 @@ class ApiService {
     int? age,
     String? region,
     String? district,
+    String? imageUrl,
   }) async {
     try {
       if (!await _hasConnection()) {
@@ -471,6 +472,9 @@ class ApiService {
       if (region != null && region.isNotEmpty) requestBody['region'] = region;
       if (district != null && district.isNotEmpty) {
         requestBody['district'] = district;
+      }
+      if (imageUrl != null && imageUrl.trim().isNotEmpty) {
+        requestBody['imageUrl'] = imageUrl.trim();
       }
 
       final response = await _sendWithRetry(

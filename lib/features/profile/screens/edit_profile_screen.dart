@@ -251,7 +251,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isLoading = true);
 
-    final response = await _apiService.updateProfile(firstName, lastName);
+    final response = await _apiService.updateProfile(
+      firstName,
+      lastName,
+      imageUrl: _currentImageUrl,
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -263,7 +267,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
