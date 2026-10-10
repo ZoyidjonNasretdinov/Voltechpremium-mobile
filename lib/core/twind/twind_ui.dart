@@ -316,15 +316,15 @@ class UserAvatar extends StatelessWidget {
         border: showBorder
             ? Border.all(
                 color: (isDark ? Colors.white : Colors.black)
-                    .withValues(alpha: 0.08),
-                width: 1,
+                    .withValues(alpha: 0.1),
+                width: 1.2,
               )
             : null,
       ),
       child: Center(
-        child: Icon(
-          Icons.person_rounded,
-          size: size * 0.62,
+        child: AppIcon(
+          AppIcons.userSolid,
+          size: size * 0.58,
           color: ic,
         ),
       ),

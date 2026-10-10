@@ -283,6 +283,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         final bgColor = theme.scaffoldBackgroundColor;
         final accentColor = theme.colorScheme.primary;
 
+        final isDark = theme.brightness == Brightness.dark;
+        final avatarBg =
+            isDark ? const Color(0xFF26282E) : const Color(0xFFE2E8F0);
+        final avatarIconColor =
+            isDark ? const Color(0xFF9CA3AF) : const Color(0xFF64748B);
+
         return Scaffold(
           backgroundColor: bgColor,
           extendBodyBehindAppBar: true,
@@ -349,7 +355,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 padding: const EdgeInsets.all(4.0),
                                 child: ClipOval(
                                   child: Container(
-                                    color: accentColor.withValues(alpha: 0.1),
+                                    color: avatarBg,
                                     child: Stack(
                                       alignment: Alignment.center,
                                       fit: StackFit.expand,
@@ -389,11 +395,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                               ),
                                                             ),
                                                   errorBuilder: (ctx, err, st) =>
-                                                      Icon(
-                                                    Icons.person_rounded,
-                                                    color: accentColor
-                                                        .withValues(alpha: 0.7),
-                                                    size: 70,
+                                                      Center(
+                                                    child: AppIcon(
+                                                      AppIcons.userSolid,
+                                                      color: avatarIconColor,
+                                                      size: 64,
+                                                    ),
                                                   ),
                                                 )
                                               : CachedNetworkImage(
@@ -420,20 +427,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                   ),
                                                   errorWidget: (context, url,
                                                           error) =>
-                                                      Icon(
-                                                    Icons.person_rounded,
-                                                    color: accentColor
-                                                        .withValues(alpha: 0.7),
-                                                    size: 70,
+                                                      Center(
+                                                    child: AppIcon(
+                                                      AppIcons.userSolid,
+                                                      color: avatarIconColor,
+                                                      size: 64,
+                                                    ),
                                                   ),
                                                 ))
                                         else
-                                          Icon(
-                                            Icons.person_rounded,
-                                            color: accentColor.withValues(
-                                              alpha: 0.7,
+                                          Center(
+                                            child: AppIcon(
+                                              AppIcons.userSolid,
+                                              color: avatarIconColor,
+                                              size: 64,
                                             ),
-                                            size: 70,
                                           ),
                                         if (_isUploadingImage)
                                           Container(
@@ -462,7 +470,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ? null
                                   : _showImageSourceDialog,
                               child: Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(9),
                                 decoration: BoxDecoration(
                                   color: accentColor,
                                   shape: BoxShape.circle,
@@ -470,26 +478,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withValues(
-                                        alpha: 0.2,
+                                        alpha: 0.25,
                                       ),
-                                      blurRadius: 4,
+                                      blurRadius: 6,
                                       offset: const Offset(0, 2),
                                     ),
                                   ],
                                 ),
                                 child: _isUploadingImage
                                     ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
+                                        width: 18,
+                                        height: 18,
                                         child: CircularProgressIndicator(
                                           color: Colors.white,
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : AppIcon(
-                                        AppIcons.edit,
+                                    : const AppIcon(
+                                        AppIcons.camera,
                                         size: 18,
-                                        color: theme.colorScheme.onPrimary,
+                                        color: Colors.white,
                                       ),
                               ),
                             ),
@@ -576,8 +584,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           prefixIcon: Padding(
             padding: const EdgeInsets.all(12),
             child: icon is String
-                ? AppIcon(icon, color: theme.colorScheme.primary, size: 20)
-                : Icon(icon as IconData, color: theme.colorScheme.primary),
+                ? AppIcon(
+                    icon,
+                    color: isDark
+                        ? const Color(0xFF9CA3AF)
+                        : const Color(0xFF64748B),
+                    size: 20,
+                  )
+                : Icon(
+                    icon as IconData,
+                    color: isDark
+                        ? const Color(0xFF9CA3AF)
+                        : const Color(0xFF64748B),
+                  ),
           ),
           filled: true,
           fillColor: fillColor,

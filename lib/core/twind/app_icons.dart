@@ -13,7 +13,9 @@ class AppIcons {
   static const String scan = Ri.qr_code_line;
   static const String qrCode = Ri.qr_code_line;
   static const String gift = Si.gift;
-  static const String user = Si.user;
+  static const String user = Ri.user_3_line;
+  static const String userSolid = Ri.user_3_fill;
+  static const String camera = Ri.camera_fill;
   static const String settings = Si.settings;
 
   // Actions
