@@ -434,24 +434,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                   }
                                 }
 
+                                final displayPoints =
+                                    TwTokens.formatTransactionPoints(points, isEarned);
+                                final pointsColor = isEarned
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFFEF4444);
+
                                 return TwCard(
                                   margin: const EdgeInsets.only(bottom: 12),
-                                  padding: const EdgeInsets.all(14),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
                                   child: Row(
                                     children: [
-                                      WContainer(
-                                        className: isEarned
-                                            ? 'p-2.5 rounded-full bg-green-500/10'
-                                            : 'p-2.5 rounded-full bg-red-500/10',
-                                        child: AppIcon(
-                                          isEarned
-                                              ? AppIcons.plusCircle
-                                              : AppIcons.minusCircle,
-                                          color: isEarned
-                                              ? Colors.green
-                                              : Colors.redAccent,
-                                          size: 22,
-                                        ),
+                                      TransactionIconBadge(
+                                        type: type,
+                                        description: description,
                                       ),
                                       const SizedBox(width: 14),
                                       Expanded(
@@ -469,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   'text-sm font-semibold truncate',
                                             ),
                                             if (formattedDate.isNotEmpty) ...[
-                                              const SizedBox(height: 2),
+                                              const SizedBox(height: 3),
                                               WText(
                                                 formattedDate,
                                                 className:
@@ -479,12 +478,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ],
                                         ),
                                       ),
+                                      const SizedBox(width: 8),
                                       WText(
-                                        '${isEarned ? '+' : '-'}$points',
+                                        displayPoints,
                                         className: 'text-base font-bold',
-                                        color: isEarned
-                                            ? Colors.green
-                                            : Colors.redAccent,
+                                        color: pointsColor,
                                       ),
                                     ],
                                   ),

@@ -54,6 +54,11 @@ class AppIcons {
   static const String points = Si.points;
   static const String plusCircle = Si.plusCircle;
   static const String minusCircle = Si.minusCircle;
+  static const String coins = Ri.coins_line;
+  static const String award = Ri.award_line;
+  static const String shoppingBag = Ri.shopping_bag_3_line;
+  static const String arrowUpRight = Ri.arrow_right_up_line;
+  static const String arrowDownLeft = Ri.arrow_left_down_line;
 
   // Profile & Support
   static const String help = Si.help;

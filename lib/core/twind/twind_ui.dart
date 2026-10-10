@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_twind/flutter_twind.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import '../api_service.dart';
 import '../theme/app_theme.dart';
 import 'app_icons.dart';
@@ -55,6 +56,20 @@ class TwTokens {
       'px-3 py-1 rounded-full bg-red-500/10 text-red-500 font-bold';
   static String badgeInfo =
       'px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 font-bold';
+
+  /// Formats transaction points without double-minus and with space thousand separators.
+  /// E.g. points = -360, isEarned = false -> "-360"
+  ///      points = 20000, isEarned = true  -> "+20 000"
+  static String formatTransactionPoints(dynamic points, bool isEarned) {
+    int parsed = 0;
+    if (points is num) {
+      parsed = points.toInt().abs();
+    } else if (points != null) {
+      parsed = (int.tryParse(points.toString()) ?? 0).abs();
+    }
+    final formatted = NumberFormat('#,###').format(parsed).replaceAll(',', ' ');
+    return '${isEarned ? '+' : '-'}$formatted';
+  }
 }
 
 /// A premium card wrapper built with WCard and WContainer
@@ -379,6 +394,102 @@ class UserAvatar extends StatelessWidget {
     }
 
     return avatarContent;
+  }
+}
+
+/// Modern, contextual transaction icon badge with custom iconography and color styling.
+class TransactionIconBadge extends StatelessWidget {
+  final String? type;
+  final String? description;
+  final double size;
+  final double iconSize;
+
+  const TransactionIconBadge({
+    super.key,
+    this.type,
+    this.description,
+    this.size = 42,
+    this.iconSize = 22,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isEarned = (type ?? '').toUpperCase() == 'EARNED';
+    final desc = (description ?? '').toLowerCase();
+
+    final String icon;
+    final Color accentColor;
+    final Color bgColor;
+    final Color borderColor;
+
+    if (desc.contains('sovg') ||
+        desc.contains('gift') ||
+        desc.contains('xarid') ||
+        desc.contains('purchase') ||
+        !isEarned) {
+      // Gift redemption or spent
+      icon = AppIcons.gift;
+      accentColor = const Color(0xFFEF4444);
+      bgColor = isDark
+          ? const Color(0xFFEF4444).withValues(alpha: 0.15)
+          : const Color(0xFFFEE2E2);
+      borderColor = isDark
+          ? const Color(0xFFEF4444).withValues(alpha: 0.28)
+          : const Color(0xFFFECACA);
+    } else if (desc.contains('admin') ||
+        desc.contains('bonus') ||
+        desc.contains('mukofot')) {
+      // Admin points / bonus grant
+      icon = AppIcons.coins;
+      accentColor = const Color(0xFF10B981);
+      bgColor = isDark
+          ? const Color(0xFF10B981).withValues(alpha: 0.15)
+          : const Color(0xFFDCFCE7);
+      borderColor = isDark
+          ? const Color(0xFF10B981).withValues(alpha: 0.28)
+          : const Color(0xFFBBF7D0);
+    } else if (desc.contains('qr') ||
+        desc.contains('kod') ||
+        desc.contains('skaner') ||
+        desc.contains('scan') ||
+        desc.contains('mahsulot')) {
+      // QR Code scan / activation
+      icon = AppIcons.qrCode;
+      accentColor = const Color(0xFF0284C7);
+      bgColor = isDark
+          ? const Color(0xFF0284C7).withValues(alpha: 0.15)
+          : const Color(0xFFE0F2FE);
+      borderColor = isDark
+          ? const Color(0xFF0284C7).withValues(alpha: 0.28)
+          : const Color(0xFFBAE6FD);
+    } else {
+      // General earned
+      icon = AppIcons.coins;
+      accentColor = const Color(0xFF10B981);
+      bgColor = isDark
+          ? const Color(0xFF10B981).withValues(alpha: 0.15)
+          : const Color(0xFFDCFCE7);
+      borderColor = isDark
+          ? const Color(0xFF10B981).withValues(alpha: 0.28)
+          : const Color(0xFFBBF7D0);
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor, width: 1.2),
+      ),
+      alignment: Alignment.center,
+      child: AppIcon(
+        icon,
+        color: accentColor,
+        size: iconSize,
+      ),
+    );
   }
 }
 

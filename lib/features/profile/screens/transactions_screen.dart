@@ -115,24 +115,25 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         formattedDate = dateStr;
                       }
 
+                      final points = tx['points'] ?? 0;
+                      final displayPoints =
+                          TwTokens.formatTransactionPoints(points, isEarned);
+                      final pointsColor = isEarned
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFFEF4444);
+
                       return TwCard(
                         margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         child: Row(
                           children: [
-                            WContainer(
-                              className: isEarned
-                                  ? 'p-2.5 rounded-full bg-green-500/10'
-                                  : 'p-2.5 rounded-full bg-red-500/10',
-                              child: AppIcon(
-                                isEarned
-                                    ? AppIcons.plusCircle
-                                    : AppIcons.minusCircle,
-                                color: isEarned
-                                    ? Colors.green
-                                    : Colors.redAccent,
-                                size: 22,
-                              ),
+                            TransactionIconBadge(
+                              type: tx['type']?.toString() ??
+                                  (isEarned ? 'EARNED' : 'SPENT'),
+                              description: tx['description']?.toString() ?? '',
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -147,19 +148,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                     className: 'text-sm font-bold',
                                     color: textColor,
                                   ),
-                                  const SizedBox(height: 3),
-                                  WText(
-                                    formattedDate,
-                                    className: 'text-xs text-gray-400',
-                                    color: textColor.withValues(alpha: 0.5),
-                                  ),
+                                  if (formattedDate.isNotEmpty) ...[
+                                    const SizedBox(height: 3),
+                                    WText(
+                                      formattedDate,
+                                      className: 'text-xs text-gray-400',
+                                      color: textColor.withValues(alpha: 0.5),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 8),
                             WText(
-                              '${isEarned ? '+' : '-'}${tx['points'] ?? 0}',
+                              displayPoints,
                               className: 'text-base font-bold',
-                              color: isEarned ? Colors.green : Colors.redAccent,
+                              color: pointsColor,
                             ),
                           ],
                         ),
