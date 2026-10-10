@@ -4,11 +4,7 @@ class DemoUser {
   final String name;
   final int balance;
 
-  DemoUser({
-    required this.phone,
-    required this.name,
-    this.balance = 0,
-  });
+  DemoUser({required this.phone, required this.name, this.balance = 0});
 }
 
 class DemoDB {

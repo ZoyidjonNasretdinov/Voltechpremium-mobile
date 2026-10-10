@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? profileData;
@@ -15,7 +18,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
-  
+
   bool _isLoading = false;
   bool _isUploadingImage = false;
   String? _currentImageUrl;
@@ -26,8 +29,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController(text: widget.profileData?['firstName'] ?? '');
-    _lastNameController = TextEditingController(text: widget.profileData?['lastName'] ?? '');
+    _firstNameController = TextEditingController(
+      text: widget.profileData?['firstName'] ?? '',
+    );
+    _lastNameController = TextEditingController(
+      text: widget.profileData?['lastName'] ?? '',
+    );
     _currentImageUrl = widget.profileData?['imageUrl'];
     if (widget.profileData == null || widget.profileData!.isEmpty) {
       _loadProfileData();
@@ -59,7 +66,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickAndUploadImage() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+      );
       if (image == null) return;
 
       final bytes = await image.readAsBytes();
@@ -70,7 +80,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isUploadingImage = true;
       });
 
-      final response = await _apiService.uploadProfileImageBytes(bytes, filename);
+      final response = await _apiService.uploadProfileImageBytes(
+        bytes,
+        filename,
+      );
 
       if (!mounted) return;
       setState(() => _isUploadingImage = false);
@@ -84,7 +97,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             content: Text('image_uploaded'.tr),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       } else {
@@ -93,7 +108,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             content: Text(response['message'] ?? 'error'.tr),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -105,7 +122,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           content: Text('error'.tr),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -116,25 +135,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final lastName = _lastNameController.text.trim();
 
     if (firstName.isEmpty || lastName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('fill_all_fields'.tr), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('fill_all_fields'.tr),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    final response = await _apiService.updateProfile(
-      firstName, 
-      lastName, 
-    );
-    
+    final response = await _apiService.updateProfile(firstName, lastName);
+
     if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (response['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('profile_updated'.tr), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('profile_updated'.tr),
+          backgroundColor: Colors.green,
+        ),
+      );
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? 'error'.tr), backgroundColor: Colors.redAccent));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response['message'] ?? 'error'.tr),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -154,10 +185,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: const AppIcon(AppIcons.arrowLeft, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
-            title: Text('edit_profile'.tr, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
+            title: WText(
+              'edit_profile'.tr,
+              className: 'text-lg font-semibold text-white',
+            ),
             centerTitle: true,
           ),
           body: SingleChildScrollView(
@@ -171,7 +205,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       margin: const EdgeInsets.only(bottom: 60),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [accentColor, accentColor.withValues(alpha: 0.8)],
+                          colors: [
+                            accentColor,
+                            accentColor.withValues(alpha: 0.8),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -196,7 +233,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   color: Colors.black.withValues(alpha: 0.15),
                                   blurRadius: 10,
                                   offset: const Offset(0, 5),
-                                )
+                                ),
                               ],
                             ),
                             child: Padding(
@@ -216,22 +253,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           height: 112,
                                         )
                                       else if (_currentImageUrl != null &&
-                                              _currentImageUrl!.isNotEmpty &&
-                                              ApiService.resolveImageUrl(_currentImageUrl) != null)
-                                        Image.network(
-                                          ApiService.resolveImageUrl(_currentImageUrl)!,
+                                          _currentImageUrl!.isNotEmpty &&
+                                          ApiService.resolveImageUrl(
+                                                _currentImageUrl,
+                                              ) !=
+                                              null)
+                                        CachedNetworkImage(
+                                          imageUrl: ApiService.resolveImageUrl(
+                                            _currentImageUrl,
+                                          )!,
                                           fit: BoxFit.cover,
                                           width: 112,
                                           height: 112,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70);
-                                          },
+                                          memCacheWidth: 300,
+                                          memCacheHeight: 300,
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                                child: SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: Colors.redAccent,
+                                                      ),
+                                                ),
+                                              ),
+                                          errorWidget:
+                                              (context, url, error) => Icon(
+                                                Icons.person_rounded,
+                                                color: accentColor.withValues(
+                                                  alpha: 0.7,
+                                                ),
+                                                size: 70,
+                                              ),
                                         )
                                       else
-                                        Icon(Icons.person, color: accentColor.withValues(alpha: 0.7), size: 70),
+                                        Icon(
+                                          Icons.person_rounded,
+                                          color: accentColor.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                          size: 70,
+                                        ),
                                       if (_isUploadingImage)
                                         Container(
-                                          color: Colors.black.withValues(alpha: 0.45),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.45,
+                                          ),
                                           child: const Center(
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2.5,
@@ -249,7 +318,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             bottom: 0,
                             right: 0,
                             child: GestureDetector(
-                              onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                              onTap: _isUploadingImage
+                                  ? null
+                                  : _pickAndUploadImage,
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -258,15 +329,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   border: Border.all(color: bgColor, width: 3),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.2),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
-                                    )
+                                    ),
                                   ],
                                 ),
                                 child: _isUploadingImage
-                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                    : Icon(Icons.camera_alt, size: 20, color: theme.colorScheme.onPrimary),
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : AppIcon(
+                                        AppIcons.edit,
+                                        size: 18,
+                                        color: theme.colorScheme.onPrimary,
+                                      ),
                               ),
                             ),
                           ),
@@ -285,29 +369,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Column(
                             children: [
-                              _buildTextField('first_name'.tr, _firstNameController, Icons.person_outline, theme),
-                              _buildTextField('last_name'.tr, _lastNameController, Icons.person_outline, theme),
+                              _buildTextField(
+                                'first_name'.tr,
+                                _firstNameController,
+                                AppIcons.user,
+                                theme,
+                              ),
+                              _buildTextField(
+                                'last_name'.tr,
+                                _lastNameController,
+                                AppIcons.user,
+                                theme,
+                              ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 28),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: ElevatedButton(
+                          child: TwButton(
+                            text: 'save_changes'.tr,
                             onPressed: _isLoading ? null : _saveProfile,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: accentColor,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              minimumSize: const Size(double.infinity, 56),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 4,
-                              shadowColor: accentColor.withValues(alpha: 0.5),
-                            ),
-                            child: _isLoading 
-                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                              : Text('save_changes'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                            isLoading: _isLoading,
+                            width: double.infinity,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -323,10 +407,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, IconData icon, ThemeData theme, {TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller,
+    dynamic icon,
+    ThemeData theme, {
+    TextInputType? keyboardType,
+  }) {
     final isDark = theme.brightness == Brightness.dark;
-    final fillColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.05);
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1);
+    final fillColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.grey.withValues(alpha: 0.05);
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : Colors.black.withValues(alpha: 0.1);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -336,11 +430,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-          prefixIcon: Icon(icon, color: theme.colorScheme.primary),
+          labelStyle: TextStyle(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12),
+            child: icon is String
+                ? AppIcon(icon, color: theme.colorScheme.primary, size: 20)
+                : Icon(icon as IconData, color: theme.colorScheme.primary),
+          ),
           filled: true,
           fillColor: fillColor,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: borderColor),

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:pinput/pinput.dart';
 import '../../../core/api_service.dart';
 import 'pending_approval_screen.dart';
-import '../../../main.dart'; 
+import '../../../main.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String phone;
@@ -72,18 +74,21 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     final code = _codeController.text.trim();
     if (code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('enter_6_digit'.tr), backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text('enter_6_digit'.tr),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     bool isPending = false;
-    
+
     if (widget.isRegistration) {
       // 1. Verify SMS code
       final verifyResponse = await _apiService.verifySms(widget.phone, code);
-      
+
       if (verifyResponse['success'] != true) {
         if (!mounted) return;
         setState(() => _isLoading = false);
@@ -109,19 +114,21 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           region: widget.region,
           district: widget.district,
         );
-        
+
         if (registerResponse['success'] != true) {
           if (!mounted) return;
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(registerResponse['message'] ?? "Ro'yxatdan o'tishda xatolik"),
+              content: Text(
+                registerResponse['message'] ?? "Ro'yxatdan o'tishda xatolik",
+              ),
               backgroundColor: Colors.redAccent,
             ),
           );
           return;
         }
-        
+
         await _apiService.login(widget.phone, widget.password!);
 
         // Check user's actual approval status
@@ -135,8 +142,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     } else {
       // Forgot Password Flow
       if (widget.password != null && widget.password!.isNotEmpty) {
-        final resetResponse = await _apiService.forgotPasswordReset(widget.phone, code, widget.password!);
-        
+        final resetResponse = await _apiService.forgotPasswordReset(
+          widget.phone,
+          code,
+          widget.password!,
+        );
+
         if (resetResponse['success'] != true) {
           if (!mounted) return;
           setState(() => _isLoading = false);
@@ -144,13 +155,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           _focusNode.requestFocus();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(resetResponse['message'] ?? "Kod noto'g'ri yoki xatolik yuz berdi"),
+              content: Text(
+                resetResponse['message'] ??
+                    "Kod noto'g'ri yoki xatolik yuz berdi",
+              ),
               backgroundColor: Colors.redAccent,
             ),
           );
           return;
         }
-        
+
         // Auto login after reset
         await _apiService.login(widget.phone, widget.password!);
       }
@@ -158,18 +172,19 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
     if (!mounted) return;
     setState(() => _isLoading = false);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(widget.isRegistration ? 'registration'.tr : 'reset_password'.tr),
+        content: Text(
+          widget.isRegistration ? 'registration'.tr : 'reset_password'.tr,
+        ),
         backgroundColor: Colors.green,
       ),
     );
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (context) => isPending 
-          ? const PendingApprovalScreen() 
-          : const MainNavigation()
+        builder: (context) =>
+            isPending ? const PendingApprovalScreen() : const MainNavigation(),
       ),
       (route) => false,
     );
@@ -178,10 +193,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('verify_code'.tr),
+        title: WText('verify_code'.tr, className: 'text-lg font-semibold'),
       ),
       body: SafeArea(
         child: Center(
@@ -189,23 +204,26 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
             constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
+                  WText(
                     'enter_6_digit'.tr,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+                    className: 'text-xl font-bold text-center',
+                    color: theme.colorScheme.onSurface,
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  WText(
                     '${'phone_number_label'.tr} ${widget.phone}',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                    textAlign: TextAlign.center,
+                    className: 'text-sm text-center text-gray-400',
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
-                  const SizedBox(height: 40),
-                  
+                  const SizedBox(height: 36),
+
                   // Pinput 6-digit OTP Input
                   Center(
                     child: Pinput(
@@ -217,73 +235,112 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       defaultPinTheme: PinTheme(
                         width: 45,
                         height: 55,
-                        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+                          border: Border.all(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
                         ),
                       ),
                       focusedPinTheme: PinTheme(
                         width: 45,
                         height: 55,
-                        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: theme.colorScheme.primary, width: 2),
+                          border: Border.all(
+                            color: theme.colorScheme.primary,
+                            width: 2,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.2,
+                              ),
                               blurRadius: 8,
                               spreadRadius: 1,
-                            )
+                            ),
                           ],
                         ),
                       ),
                       submittedPinTheme: PinTheme(
                         width: 45,
                         height: 55,
-                        textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 40),
-                  ElevatedButton(
+
+                  const SizedBox(height: 36),
+                  TwButton(
+                    text: 'confirm'.tr,
                     onPressed: _isLoading ? null : _verify,
-                    child: _isLoading
-                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white))
-                        : Text('confirm'.tr),
+                    isLoading: _isLoading,
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: (_secondsRemaining == 0 && !_isLoading) 
-                      ? () async {
-                          FocusScope.of(context).unfocus();
-                          setState(() => _isLoading = true);
-                          final response = widget.isRegistration 
-                            ? await _apiService.sendSms(widget.phone)
-                            : await _apiService.forgotPasswordSendSms(widget.phone);
-                            
-                          if (!mounted) return;
-                          setState(() => _isLoading = false);
-                          if (response['success'] == true) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('code_resent'.tr), backgroundColor: Colors.green));
-                            _startTimer();
-                          } else {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response['message'] ?? "Xatolik"), backgroundColor: Colors.redAccent));
+                    onPressed: (_secondsRemaining == 0 && !_isLoading)
+                        ? () async {
+                            FocusScope.of(context).unfocus();
+                            setState(() => _isLoading = true);
+                            final response = widget.isRegistration
+                                ? await _apiService.sendSms(widget.phone)
+                                : await _apiService.forgotPasswordSendSms(
+                                    widget.phone,
+                                  );
+
+                            if (!mounted) return;
+                            setState(() => _isLoading = false);
+                            if (response['success'] == true) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('code_resent'.tr),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              _startTimer();
+                            } else {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    response['message'] ?? "Xatolik",
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
                           }
-                        } 
-                      : null,
-                    child: Text(_secondsRemaining > 0 ? "${'send_code'.tr} ($_secondsRemaining s)" : 'send_code'.tr),
+                        : null,
+                    child: Text(
+                      _secondsRemaining > 0
+                          ? "${'send_code'.tr} ($_secondsRemaining s)"
+                          : 'send_code'.tr,
+                    ),
                   ),
                 ],
               ),

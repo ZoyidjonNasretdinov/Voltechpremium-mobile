@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
 import '../../../core/localization/app_localizations.dart';
-
+import '../../../core/twind/twind_ui.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -29,8 +30,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       _error = null;
     });
 
-    final response = await _apiService.getTransactionHistory(page: 0, size: 100);
-    
+    final response = await _apiService.getTransactionHistory(
+      page: 0,
+      size: 100,
+    );
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -55,110 +59,116 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: AppIcon(AppIcons.arrowLeft, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('points_history'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: WText(
+          'points_history'.tr,
+          className: 'text-lg font-semibold',
+          color: textColor,
+        ),
         centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent)))
-              : _transactions.isEmpty
-                  ? Center(
-                      child: Text(
-                        'no_transactions'.tr,
-                        style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 16),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadTransactions,
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 680),
-                          child: ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            itemCount: _transactions.length,
-                            itemBuilder: (context, index) {
-                              final tx = _transactions[index];
-                              final isEarned = tx['type'] == 'EARNED';
-                              final dateStr = tx['date'] ?? '';
-                              String formattedDate = '';
-                              try {
-                                if (dateStr.isNotEmpty) {
-                                  String dStr = dateStr;
-                                  if (!dStr.endsWith('Z')) dStr += 'Z';
-                                  final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
-                                  formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
-                                }
-                              } catch (e) {
-                                formattedDate = dateStr;
-                              }
-
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: isEarned 
-                                            ? Colors.green.withValues(alpha: 0.1) 
-                                            : Colors.redAccent.withValues(alpha: 0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        isEarned ? Icons.add_circle_outline : Icons.remove_circle_outline,
-                                        color: isEarned ? Colors.green : Colors.redAccent,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            tx['description'] ?? (isEarned ? 'points_earned'.tr : 'points_spent'.tr),
-                                            style: TextStyle(
-                                              color: textColor,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            formattedDate,
-                                            style: TextStyle(
-                                              color: textColor.withValues(alpha: 0.5),
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      '${isEarned ? '+' : '-'}${tx['points'] ?? 0}',
-                                      style: TextStyle(
-                                        color: isEarned ? Colors.green : Colors.redAccent,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
+          ? Center(child: WText(_error!, className: 'text-red-500 font-medium'))
+          : _transactions.isEmpty
+          ? Center(
+              child: WText(
+                'no_transactions'.tr,
+                className: 'text-base text-gray-500',
+                color: textColor.withValues(alpha: 0.6),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadTransactions,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
                     ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    itemCount: _transactions.length,
+                    itemBuilder: (context, index) {
+                      final tx = _transactions[index];
+                      final isEarned = tx['type'] == 'EARNED';
+                      final dateStr = tx['date'] ?? '';
+                      String formattedDate = '';
+                      try {
+                        if (dateStr.isNotEmpty) {
+                          String dStr = dateStr;
+                          if (!dStr.endsWith('Z')) dStr += 'Z';
+                          final date = DateTime.parse(
+                            dStr,
+                          ).toUtc().add(const Duration(hours: 5));
+                          formattedDate = DateFormat(
+                            'dd.MM.yyyy HH:mm',
+                          ).format(date);
+                        }
+                      } catch (e) {
+                        formattedDate = dateStr;
+                      }
+
+                      return TwCard(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            WContainer(
+                              className: isEarned
+                                  ? 'p-2.5 rounded-full bg-green-500/10'
+                                  : 'p-2.5 rounded-full bg-red-500/10',
+                              child: AppIcon(
+                                isEarned
+                                    ? AppIcons.plusCircle
+                                    : AppIcons.minusCircle,
+                                color: isEarned
+                                    ? Colors.green
+                                    : Colors.redAccent,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  WText(
+                                    tx['description'] ??
+                                        (isEarned
+                                            ? 'points_earned'.tr
+                                            : 'points_spent'.tr),
+                                    className: 'text-sm font-bold',
+                                    color: textColor,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  WText(
+                                    formattedDate,
+                                    className: 'text-xs text-gray-400',
+                                    color: textColor.withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            WText(
+                              '${isEarned ? '+' : '-'}${tx['points'] ?? 0}',
+                              className: 'text-base font-bold',
+                              color: isEarned ? Colors.green : Colors.redAccent,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }

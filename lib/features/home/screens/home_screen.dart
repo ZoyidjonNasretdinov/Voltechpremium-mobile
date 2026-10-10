@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../gifts/screens/gift_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
+import '../../../core/twind/twind_ui.dart';
+import '../../../main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +18,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedCardDesign = 0;
+  static final DateFormat _activityDateFormat = DateFormat('dd.MM.yyyy, HH:mm');
+  int _selectedCardDesign = cardDesignNotifier.value;
   bool _isLoading = true;
   Map<String, dynamic>? _profileData;
   List<dynamic> _recentActivities = [];
@@ -24,16 +28,55 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedCardDesign = cardDesignNotifier.value;
+    cardDesignNotifier.addListener(_onCardDesignChanged);
     _loadSavedCardDesign();
     _loadData();
+  }
+
+  void _onCardDesignChanged() {
+    if (mounted && _selectedCardDesign != cardDesignNotifier.value) {
+      setState(() => _selectedCardDesign = cardDesignNotifier.value);
+    }
+  }
+
+  @override
+  void dispose() {
+    cardDesignNotifier.removeListener(_onCardDesignChanged);
+    super.dispose();
+  }
+
+  Future<void> _updateCardDesign(int index) async {
+    cardDesignNotifier.value = index;
+    if (mounted) {
+      setState(() => _selectedCardDesign = index);
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('selected_card_design', index);
+      final phone = _profileData?['phoneNumber']?.toString();
+      if (phone != null && phone.isNotEmpty) {
+        await prefs.setInt('card_design_$phone', index);
+      }
+    } catch (e) {
+      debugPrint("Error saving card design: $e");
+    }
   }
 
   Future<void> _loadSavedCardDesign() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedIndex = prefs.getInt('selected_card_design');
-      if (savedIndex != null && mounted) {
-        setState(() => _selectedCardDesign = savedIndex);
+      int? savedIndex;
+      final phone = _profileData?['phoneNumber']?.toString();
+      if (phone != null && phone.isNotEmpty) {
+        savedIndex = prefs.getInt('card_design_$phone');
+      }
+      savedIndex ??= prefs.getInt('selected_card_design');
+      if (savedIndex != null) {
+        cardDesignNotifier.value = savedIndex;
+        if (mounted) {
+          setState(() => _selectedCardDesign = savedIndex!);
+        }
       }
     } catch (e) {
       debugPrint("Error loading card design: $e");
@@ -48,16 +91,30 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
-      final profileResponse = await _apiService.getProfile();
+      final results = await Future.wait([
+        _apiService.getProfile(),
+        _apiService.getTransactionHistory(page: 0, size: 20),
+      ]);
       if (!mounted) return;
+
+      final profileResponse = results[0];
+      final txResponse = results[1];
+
       if (profileResponse['success'] == true) {
         _profileData = profileResponse['data'];
+        final phone = _profileData?['phoneNumber']?.toString();
+        if (phone != null && phone.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          final userSaved = prefs.getInt('card_design_$phone');
+          if (userSaved != null) {
+            cardDesignNotifier.value = userSaved;
+            if (mounted) setState(() => _selectedCardDesign = userSaved);
+          }
+        }
       }
 
-      final txResponse = await _apiService.getTransactionHistory(page: 0, size: 20);
-      if (!mounted) return;
       if (txResponse['success'] == true) {
         final data = txResponse['data'];
         List<dynamic> activities = data?['content'] ?? [];
@@ -96,20 +153,58 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'choose_design'.tr,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 24),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildBottomSheetSelector(context, 0, const Color(0xFF1A5BB5), 'basic'.tr),
-                    _buildBottomSheetSelector(context, 1, const Color(0xFFEFA517), 'orange'.tr),
-                    _buildBottomSheetSelector(context, 2, const Color(0xFFF00A5B), 'pink'.tr),
-                    _buildBottomSheetSelector(context, 3, const Color(0xFF333333), 'black'.tr),
-                    _buildBottomSheetSelector(context, 4, const Color(0xFFD30A0A), 'red'.tr),
-                    _buildBottomSheetSelector(context, 5, const Color(0xFF0A0A0A), 'night'.tr),
-                    _buildBottomSheetSelector(context, 6, const Color(0xFF6B45FF), 'purple'.tr),
+                    _buildBottomSheetSelector(
+                      context,
+                      0,
+                      const Color(0xFF1A5BB5),
+                      'basic'.tr,
+                    ),
+                    _buildBottomSheetSelector(
+                      context,
+                      1,
+                      const Color(0xFFEFA517),
+                      'orange'.tr,
+                    ),
+                    _buildBottomSheetSelector(
+                      context,
+                      2,
+                      const Color(0xFFF00A5B),
+                      'pink'.tr,
+                    ),
+                    _buildBottomSheetSelector(
+                      context,
+                      3,
+                      const Color(0xFF333333),
+                      'black'.tr,
+                    ),
+                    _buildBottomSheetSelector(
+                      context,
+                      4,
+                      const Color(0xFFD30A0A),
+                      'red'.tr,
+                    ),
+                    _buildBottomSheetSelector(
+                      context,
+                      5,
+                      const Color(0xFF0A0A0A),
+                      'night'.tr,
+                    ),
+                    _buildBottomSheetSelector(
+                      context,
+                      6,
+                      const Color(0xFF6B45FF),
+                      'purple'.tr,
+                    ),
                   ],
                 ),
               ),
@@ -121,18 +216,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBottomSheetSelector(BuildContext context, int index, Color color, String name) {
+  Widget _buildBottomSheetSelector(
+    BuildContext context,
+    int index,
+    Color color,
+    String name,
+  ) {
     final isSelected = _selectedCardDesign == index;
     return GestureDetector(
       onTap: () async {
-        setState(() => _selectedCardDesign = index);
         Navigator.pop(context); // Close sheet after selection
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt('selected_card_design', index);
-        } catch (e) {
-          debugPrint("Error saving card design: $e");
-        }
+        await _updateCardDesign(index);
       },
       child: Padding(
         padding: const EdgeInsets.only(right: 20.0),
@@ -145,7 +239,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
                   width: 3,
                 ),
                 boxShadow: [
@@ -153,17 +249,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: color.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              name, 
+              name,
               style: TextStyle(
-                fontSize: 12, 
+                fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey,
               ),
             ),
           ],
@@ -183,13 +281,12 @@ class _HomeScreenState extends State<HomeScreen> {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${'welcome'.tr},',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                Text(
-                  _profileData != null ? '${_profileData!['firstName']} ${_profileData!['lastName']}' : 'loading'.tr,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                WText('${'welcome'.tr},', className: 'text-xs text-gray-400'),
+                WText(
+                  _profileData != null
+                      ? '${_profileData!['firstName']} ${_profileData!['lastName']}'
+                      : 'loading'.tr,
+                  className: 'text-lg font-bold',
                 ),
               ],
             ),
@@ -217,10 +314,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.orange.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
-                      )
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.card_giftcard, color: Colors.white, size: 20),
+                  child: const Center(
+                    child: AppIcon(
+                      AppIcons.gift,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
                 ),
               ),
               Padding(
@@ -229,34 +332,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileScreen(),
+                      ),
                     ).then((_) {
                       if (mounted) _loadData();
                     });
                   },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: (_profileData != null &&
-                              _profileData!['imageUrl'] != null &&
-                              _profileData!['imageUrl'].toString().isNotEmpty &&
-                              ApiService.resolveImageUrl(_profileData!['imageUrl']) != null)
-                          ? Image.network(
-                              ApiService.resolveImageUrl(_profileData!['imageUrl'])!,
-                              fit: BoxFit.cover,
-                              width: 40,
-                              height: 40,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.person, color: Colors.white, size: 22);
-                              },
-                            )
-                          : const Icon(Icons.person, color: Colors.white, size: 22),
-                    ),
+                  child: UserAvatar(
+                    imageUrl: _profileData?['imageUrl'],
+                    size: 40,
                   ),
                 ),
               ),
@@ -264,107 +349,152 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: RefreshIndicator(
             onRefresh: _loadData,
-            child: _isLoading 
-                ? const Center(child: CircularProgressIndicator()) 
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
                 : Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 680),
                       child: ListView(
                         padding: const EdgeInsets.all(16.0),
                         children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text('my_card'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.grey),
-                        onPressed: _showDesignPicker,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  LoyaltyCardWidget(
-                    designIndex: _selectedCardDesign,
-                    cardHolderName: _profileData != null ? '${_profileData!['firstName']} ${_profileData!['lastName']}' : '',
-                    points: (_profileData?['totalBonusPoints'] ?? 0).toInt(),
-                    phoneNumber: _profileData?['phoneNumber'] ?? '',
-                  ),
-                  const SizedBox(height: 24),
-                  Text('recent_activity'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  if (_recentActivities.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32.0),
-                        child: Text('no_activity'.tr, style: const TextStyle(color: Colors.grey)),
-                      ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _recentActivities.length,
-                      itemBuilder: (context, index) {
-                        final activity = _recentActivities[index];
-                        // TransactionHistoryDto: type, description, points, date
-                        final type = activity['type'] ?? 'EARNED'; // 'EARNED' | 'SPENT'
-                        final description = activity['description'] ?? '';
-                        final points = activity['points'] ?? 0;
-                        final dateStr = activity['date'];
-                        final isEarned = type == 'EARNED';
-
-                        String formattedDate = '';
-                        if (dateStr != null) {
-                          try {
-                            String dStr = dateStr;
-                            if (!dStr.endsWith('Z')) dStr += 'Z';
-                            final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
-                            formattedDate = DateFormat('dd.MM.yyyy, HH:mm').format(date);
-                          } catch (e) {
-                            formattedDate = dateStr.toString();
-                          }
-                        }
-
-                        return Card(
-                          color: Theme.of(context).colorScheme.surface,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: isEarned
-                                  ? Colors.green.withValues(alpha: 0.15)
-                                  : Colors.redAccent.withValues(alpha: 0.15),
-                              child: Icon(
-                                isEarned ? Icons.add_circle_outline : Icons.remove_circle_outline,
-                                color: isEarned ? Colors.green : Colors.redAccent,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: WText(
+                                  'my_card'.tr,
+                                  className: 'text-lg font-bold',
+                                ),
                               ),
-                            ),
-                            title: Text(
-                              description.isNotEmpty ? description : (isEarned ? 'points_earned'.tr : 'points_spent'.tr),
-                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: formattedDate.isNotEmpty
-                                ? Text(formattedDate, style: const TextStyle(fontSize: 12))
-                                : null,
-                            trailing: Text(
-                              '${isEarned ? '+' : '-'}$points',
-                              style: TextStyle(
-                                color: isEarned ? Colors.green : Colors.redAccent,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                              IconButton(
+                                icon: const AppIcon(
+                                  AppIcons.settings,
+                                  color: Colors.grey,
+                                  size: 22,
+                                ),
+                                onPressed: _showDesignPicker,
                               ),
-                            ),
+                            ],
                           ),
-                        );
-                      },
+                          const SizedBox(height: 8),
+                          LoyaltyCardWidget(
+                            designIndex: _selectedCardDesign,
+                            onDesignChanged: _updateCardDesign,
+                            cardHolderName: _profileData != null
+                                ? '${_profileData!['firstName']} ${_profileData!['lastName']}'
+                                : '',
+                            points: (_profileData?['totalBonusPoints'] ?? 0)
+                                .toInt(),
+                            phoneNumber: _profileData?['phoneNumber'] ?? '',
+                          ),
+                          const SizedBox(height: 24),
+                          WText(
+                            'recent_activity'.tr,
+                            className: 'text-lg font-bold',
+                          ),
+                          const SizedBox(height: 16),
+                          if (_recentActivities.isEmpty)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 32.0,
+                                ),
+                                child: WText(
+                                  'no_activity'.tr,
+                                  className: 'text-sm text-gray-500',
+                                ),
+                              ),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _recentActivities.length,
+                              itemBuilder: (context, index) {
+                                final activity = _recentActivities[index];
+                                final type = activity['type'] ?? 'EARNED';
+                                final description =
+                                    activity['description'] ?? '';
+                                final points = activity['points'] ?? 0;
+                                final dateStr = activity['date'];
+                                final isEarned = type == 'EARNED';
+
+                                String formattedDate = '';
+                                if (dateStr != null) {
+                                  try {
+                                    String dStr = dateStr;
+                                    if (!dStr.endsWith('Z')) dStr += 'Z';
+                                    final date = DateTime.parse(
+                                      dStr,
+                                    ).toUtc().add(const Duration(hours: 5));
+                                    formattedDate =
+                                        _activityDateFormat.format(date);
+                                  } catch (e) {
+                                    formattedDate = dateStr.toString();
+                                  }
+                                }
+
+                                return TwCard(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(14),
+                                  child: Row(
+                                    children: [
+                                      WContainer(
+                                        className: isEarned
+                                            ? 'p-2.5 rounded-full bg-green-500/10'
+                                            : 'p-2.5 rounded-full bg-red-500/10',
+                                        child: AppIcon(
+                                          isEarned
+                                              ? AppIcons.plusCircle
+                                              : AppIcons.minusCircle,
+                                          color: isEarned
+                                              ? Colors.green
+                                              : Colors.redAccent,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            WText(
+                                              description.isNotEmpty
+                                                  ? description
+                                                  : (isEarned
+                                                        ? 'points_earned'.tr
+                                                        : 'points_spent'.tr),
+                                              className:
+                                                  'text-sm font-semibold truncate',
+                                            ),
+                                            if (formattedDate.isNotEmpty) ...[
+                                              const SizedBox(height: 2),
+                                              WText(
+                                                formattedDate,
+                                                className:
+                                                    'text-xs text-gray-400',
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                      WText(
+                                        '${isEarned ? '+' : '-'}$points',
+                                        className: 'text-base font-bold',
+                                        color: isEarned
+                                            ? Colors.green
+                                            : Colors.redAccent,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
                     ),
-                ],
-              ),
-            ),
-          ),
+                  ),
           ),
         );
       },
@@ -374,16 +504,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class LoyaltyCardWidget extends StatefulWidget {
   final int designIndex;
+  final ValueChanged<int>? onDesignChanged;
   final String cardHolderName;
   final int points;
   final String phoneNumber;
-  const LoyaltyCardWidget({super.key, required this.designIndex, required this.cardHolderName, required this.points, required this.phoneNumber});
+  const LoyaltyCardWidget({
+    super.key,
+    required this.designIndex,
+    this.onDesignChanged,
+    required this.cardHolderName,
+    required this.points,
+    required this.phoneNumber,
+  });
 
   @override
   State<LoyaltyCardWidget> createState() => _LoyaltyCardWidgetState();
 }
 
-class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTickerProviderStateMixin {
+class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
   bool _isFront = true;
@@ -391,10 +530,14 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
     );
+    _animation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -450,34 +593,42 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
         return Container(
           decoration: const BoxDecoration(color: Color(0xFFF00A5B)),
           child: Stack(
-            children: List.generate(8, (i) {
-              return Positioned(
-                top: -100.0 + (i * 12),
-                right: -100.0 + (i * 18),
-                child: Container(
-                  width: 320,
-                  height: 320,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.0),
-                  ),
-                ),
-              );
-            })
-              ..addAll(List.generate(6, (i) {
-                return Positioned(
-                  bottom: -120.0 + (i * 20),
-                  left: -80.0 + (i * 12),
-                  child: Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.0),
+            children:
+                List.generate(8, (i) {
+                  return Positioned(
+                    top: -100.0 + (i * 12),
+                    right: -100.0 + (i * 18),
+                    child: Container(
+                      width: 320,
+                      height: 320,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1.0,
+                        ),
+                      ),
                     ),
-                  ),
-                );
-              })),
+                  );
+                })..addAll(
+                  List.generate(6, (i) {
+                    return Positioned(
+                      bottom: -120.0 + (i * 20),
+                      left: -80.0 + (i * 12),
+                      child: Container(
+                        width: 280,
+                        height: 280,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            width: 1.0,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
           ),
         );
       case 3: // Black/Grey Abstract
@@ -517,30 +668,42 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
           decoration: const BoxDecoration(color: Color(0xFFD30A0A)),
           child: Stack(
             children: [
-              ...List.generate(5, (i) => Positioned(
-                top: -100.0 - (i * 40),
-                left: 60.0 - (i * 40),
-                child: Container(
-                  width: 200.0 + (i * 80),
-                  height: 200.0 + (i * 80),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFB50000), width: 15),
+              ...List.generate(
+                5,
+                (i) => Positioned(
+                  top: -100.0 - (i * 40),
+                  left: 60.0 - (i * 40),
+                  child: Container(
+                    width: 200.0 + (i * 80),
+                    height: 200.0 + (i * 80),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFB50000),
+                        width: 15,
+                      ),
+                    ),
                   ),
                 ),
-              )),
-              ...List.generate(4, (i) => Positioned(
-                bottom: -100.0 - (i * 40),
-                right: -50.0 - (i * 40),
-                child: Container(
-                  width: 200.0 + (i * 80),
-                  height: 200.0 + (i * 80),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFB50000), width: 15),
+              ),
+              ...List.generate(
+                4,
+                (i) => Positioned(
+                  bottom: -100.0 - (i * 40),
+                  right: -50.0 - (i * 40),
+                  child: Container(
+                    width: 200.0 + (i * 80),
+                    height: 200.0 + (i * 80),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFB50000),
+                        width: 15,
+                      ),
+                    ),
                   ),
                 ),
-              )),
+              ),
             ],
           ),
         );
@@ -586,7 +749,11 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                 left: -100,
                 child: Transform.rotate(
                   angle: -0.5,
-                  child: Container(width: 400, height: 20, color: const Color(0xFF4A2DA8)),
+                  child: Container(
+                    width: 400,
+                    height: 20,
+                    color: const Color(0xFF4A2DA8),
+                  ),
                 ),
               ),
               Positioned(
@@ -594,7 +761,11 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                 right: 60,
                 child: Transform.rotate(
                   angle: 0.8,
-                  child: Container(width: 20, height: 400, color: const Color(0xFF4A2DA8)),
+                  child: Container(
+                    width: 20,
+                    height: 400,
+                    color: const Color(0xFF4A2DA8),
+                  ),
                 ),
               ),
               Positioned(
@@ -602,7 +773,11 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                 left: 50,
                 child: Transform.rotate(
                   angle: 0.4,
-                  child: Container(width: 300, height: 20, color: const Color(0xFF4A2DA8)),
+                  child: Container(
+                    width: 300,
+                    height: 20,
+                    color: const Color(0xFF4A2DA8),
+                  ),
                 ),
               ),
               Positioned(
@@ -610,7 +785,11 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                 right: -50,
                 child: Transform.rotate(
                   angle: -0.6,
-                  child: Container(width: 300, height: 20, color: const Color(0xFF4A2DA8)),
+                  child: Container(
+                    width: 300,
+                    height: 20,
+                    color: const Color(0xFF4A2DA8),
+                  ),
                 ),
               ),
             ],
@@ -665,6 +844,20 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
       builder: (context, locale, child) {
         return GestureDetector(
           onTap: _flipCard,
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity != null && widget.onDesignChanged != null) {
+              const totalDesigns = 7;
+              if (details.primaryVelocity! < -150) {
+                // Swiped left -> next design
+                final next = (widget.designIndex + 1) % totalDesigns;
+                widget.onDesignChanged!(next);
+              } else if (details.primaryVelocity! > 150) {
+                // Swiped right -> previous design
+                final prev = (widget.designIndex - 1 + totalDesigns) % totalDesigns;
+                widget.onDesignChanged!(prev);
+              }
+            }
+          },
           child: AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -713,7 +906,7 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
             color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
-          )
+          ),
         ],
       ),
       child: ClipRRect(
@@ -736,25 +929,41 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         child: Image.asset(
                           'assets/images/logo.png',
-                          height: 22,
+                          height: 26,
                           fit: BoxFit.contain,
                         ),
                       ),
                       Row(
                         children: const [
-                          Icon(Icons.stars, color: Colors.amber, size: 24),
+                          AppIcon(AppIcons.star, color: Colors.amber, size: 24),
                           SizedBox(width: 4),
-                          Text('PREMIUM', style: TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
+                          Text(
+                            'PREMIUM',
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                   Text(
                     _formatPhone(widget.phoneNumber),
-                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 3.0),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 3.0,
+                    ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -763,17 +972,47 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('card_holder'.tr, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                          Text(
+                            'card_holder'.tr,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          Text(widget.cardHolderName.isEmpty ? 'Kutib turing...' : widget.cardHolderName, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          Text(
+                            widget.cardHolderName.isEmpty
+                                ? 'Kutib turing...'
+                                : widget.cardHolderName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('current_balance'.tr, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                          Text(
+                            'current_balance'.tr,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          Text('${NumberFormat('#,###').format(widget.points).replaceAll(',', ' ')} ${'points'.tr}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          Text(
+                            '${NumberFormat('#,###').format(widget.points).replaceAll(',', ' ')} ${'points'.tr}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(
@@ -781,11 +1020,31 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
                         height: 24,
                         child: Stack(
                           children: [
-                            Positioned(left: 0, child: Container(width: 24, height: 24, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.8)))),
-                            Positioned(right: 0, child: Container(width: 24, height: 24, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.4)))),
+                            Positioned(
+                              left: 0,
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],
@@ -808,7 +1067,7 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
             color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
-          )
+          ),
         ],
       ),
       child: ClipRRect(
@@ -821,33 +1080,55 @@ class _LoyaltyCardWidgetState extends State<LoyaltyCardWidget> with SingleTicker
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                Container(height: 44, width: double.infinity, color: Colors.black87),
+                Container(
+                  height: 44,
+                  width: double.infinity,
+                  color: Colors.black87,
+                ),
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Container(height: 36, color: Colors.white, alignment: Alignment.centerLeft, padding: const EdgeInsets.only(left: 8)),
+                        child: Container(
+                          height: 36,
+                          color: Colors.white,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.only(left: 8),
+                        ),
                       ),
                       Container(
-                        height: 36, width: 50, color: Colors.grey[300], alignment: Alignment.center,
-                        child: const Text('123', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
+                        height: 36,
+                        width: 50,
+                        color: Colors.grey[300],
+                        alignment: Alignment.center,
+                        child: const Text(
+                          '123',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const Spacer(),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 16.0,
+                  ),
                   child: Text(
                     'card_info'.tr,
                     style: const TextStyle(color: Colors.white70, fontSize: 10),
                     textAlign: TextAlign.center,
                   ),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

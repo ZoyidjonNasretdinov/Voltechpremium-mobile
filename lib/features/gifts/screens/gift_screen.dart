@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/localization/app_localizations.dart';
 import 'purchases_screen.dart';
 import '../../../core/api_service.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class GiftScreen extends StatefulWidget {
   const GiftScreen({super.key});
@@ -14,6 +16,7 @@ class GiftScreen extends StatefulWidget {
 
 class _GiftScreenState extends State<GiftScreen> {
   bool _isLoading = true;
+  bool _isPurchasing = false;
   List<dynamic> _realGifts = [];
   List<dynamic> _filteredGifts = [];
   int _userPoints = 0;
@@ -49,14 +52,20 @@ class _GiftScreenState extends State<GiftScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
-      final profileRes = await _apiService.getProfile();
+      final results = await Future.wait([
+        _apiService.getProfile(),
+        _apiService.getAllGifts(),
+      ]);
+
+      final profileRes = results[0];
+      final giftsRes = results[1];
+
       if (profileRes['success'] == true) {
         _userPoints = (profileRes['data']['totalBonusPoints'] ?? 0).toInt();
       }
 
-      final giftsRes = await _apiService.getAllGifts();
       if (giftsRes['success'] == true) {
         _realGifts = giftsRes['data']['content'] ?? [];
         _filteredGifts = List.from(_realGifts);
@@ -76,198 +85,393 @@ class _GiftScreenState extends State<GiftScreen> {
     final giftName = gift['name'] ?? 'unknown_gift'.tr;
 
     if (_userPoints < price) {
+      final needed = price - _userPoints;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("${'insufficient_points'.tr} (${'price'.tr}: $price)"),
+          content: Text(
+            "${'insufficient_points'.tr} (${'not_enough_points'.tr}: ${NumberFormat('#,###').format(needed).replaceAll(',', ' ')} ${'points_unit'.tr})",
+          ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
     }
 
+    final remainingPoints = _userPoints - price;
+    final imageUrl = gift['imageUrl'];
+
     final confirm = await showDialog<bool>(
       context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (ctx) {
         final theme = Theme.of(ctx);
         final isDark = theme.brightness == Brightness.dark;
-        final dialogBg = isDark ? const Color(0xFF16181D) : Colors.white;
-        final textColor = theme.colorScheme.onSurface;
-        final subTextColor = textColor.withValues(alpha: 0.65);
-        final borderColor = isDark ? const Color(0xFF262933) : const Color(0xFFE2E8F0);
-        const primaryRed = Color(0xFFE33124);
+        final dialogBg = isDark ? const Color(0xFF1E1F25) : Colors.white;
+        final cardBg =
+            isDark ? const Color(0xFF141519) : const Color(0xFFF7F8FA);
+        final textColor = isDark ? Colors.white : const Color(0xFF111827);
+        final subTextColor = isDark
+            ? Colors.white.withValues(alpha: 0.65)
+            : const Color(0xFF6B7280);
+        const primaryRed = Color(0xFFE52D27);
 
         return Dialog(
-          backgroundColor: dialogBg,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Top Icon Badge
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: primaryRed.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: primaryRed.withValues(alpha: 0.25),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.card_giftcard_rounded,
-                      color: primaryRed,
-                      size: 32,
-                    ),
-                  ),
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
+          ),
+          elevation: 0,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 380),
+            decoration: BoxDecoration(
+              color: dialogBg,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.08),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.6 : 0.15),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
                 ),
-                const SizedBox(height: 18),
-
-                // Title
-                Text(
-                  'get_gift_title'.tr,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: textColor,
-                    letterSpacing: -0.3,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 14),
-
-                // Gift Info Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F1014) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        giftName,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(26),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Top glowing icon badge
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            primaryRed.withValues(alpha: 0.22),
+                            primaryRed.withValues(alpha: 0.06),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        border: Border.all(
+                          color: primaryRed.withValues(alpha: 0.4),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryRed.withValues(alpha: 0.25),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: const Center(
+                        child: AppIcon(
+                          AppIcons.gift,
+                          color: primaryRed,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dialog Title - crisp and visible in all themes
+                    Text(
+                      'get_gift_title'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Gift Showcase Card
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.07)
+                              : Colors.black.withValues(alpha: 0.06),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
                         children: [
-                          const Icon(Icons.bolt, color: primaryRed, size: 20),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${NumberFormat('#,###').format(price).replaceAll(',', ' ')} ${'points_unit'.tr}",
-                            style: const TextStyle(
-                              color: primaryRed,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
+                          // Thumbnail or placeholder
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              width: 52,
+                              height: 52,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.grey.shade200,
+                              child: (imageUrl != null &&
+                                      imageUrl.toString().isNotEmpty &&
+                                      ApiService.resolveImageUrl(
+                                            imageUrl.toString(),
+                                          ) !=
+                                          null)
+                                  ? CachedNetworkImage(
+                                      imageUrl: ApiService.resolveImageUrl(
+                                        imageUrl.toString(),
+                                      )!,
+                                      fit: BoxFit.cover,
+                                      memCacheWidth: 200,
+                                      memCacheHeight: 200,
+                                      placeholder: (ctx, url) => const Center(
+                                        child: SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: primaryRed,
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (ctx, url, err) =>
+                                          const Center(
+                                            child: AppIcon(
+                                              AppIcons.gift,
+                                              size: 24,
+                                              color: primaryRed,
+                                            ),
+                                          ),
+                                    )
+                                  : const Center(
+                                      child: AppIcon(
+                                        AppIcons.gift,
+                                        size: 24,
+                                        color: primaryRed,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Name and price
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  giftName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: textColor,
+                                    height: 1.25,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    const AppIcon(
+                                      AppIcons.points,
+                                      color: primaryRed,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      NumberFormat('#,###')
+                                          .format(price)
+                                          .replaceAll(',', ' '),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900,
+                                        color: primaryRed,
+                                      ),
+                                    ),
+                                    Text(
+                                      ' ${'points_unit'.tr}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: primaryRed.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
+                    ),
+                    const SizedBox(height: 12),
 
-                Text(
-                  'gift_order_desc'.tr,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: subTextColor,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-
-                // Action Buttons with generous touch targets and balanced padding
-                Row(
-                  children: [
-                    // Cancel Button
-                    Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: borderColor, width: 1.2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                          child: Text(
-                            'cancel'.tr,
+                    // Balance after purchase chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'remaining_balance'.tr,
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
                               color: subTextColor,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ),
+                          Row(
+                            children: [
+                              Text(
+                                NumberFormat('#,###')
+                                    .format(remainingPoints)
+                                    .replaceAll(',', ' '),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: textColor,
+                                ),
+                              ),
+                              Text(
+                                ' ${'points_unit'.tr}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: subTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(height: 14),
 
-                    // Confirm Button
-                    Expanded(
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFEA3829), Color(0xFFBA1B0E)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: primaryRed.withValues(alpha: 0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                          child: Text(
-                            'confirm'.tr,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                    // Description text
+                    Text(
+                      'gift_order_desc'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: subTextColor,
+                        height: 1.4,
                       ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        // Cancel button
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => Navigator.pop(ctx, false),
+                            borderRadius: BorderRadius.circular(13),
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.07)
+                                    : Colors.black.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(13),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : Colors.black.withValues(alpha: 0.08),
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'cancel'.tr,
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: textColor.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Confirm button
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => Navigator.pop(ctx, true),
+                            borderRadius: BorderRadius.circular(13),
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFE52D27),
+                                    Color(0xFFC71610),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(13),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFFE52D27,
+                                    ).withValues(alpha: 0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.check_rounded,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'confirm'.tr,
+                                      style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -276,39 +480,133 @@ class _GiftScreenState extends State<GiftScreen> {
 
     if (confirm != true) return;
 
-    if (!mounted) return;
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator()),
-    );
+    if (!mounted || _isPurchasing) return;
+    setState(() => _isPurchasing = true);
 
-    final res = await _apiService.purchaseGift(giftId);
-    if (!mounted) return;
-    
-    Navigator.pop(context); // pop loading
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        builder: (ctx) {
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1F25) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: CircularProgressIndicator(
+                      color: Color(0xFFE52D27),
+                      strokeWidth: 3,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'loading'.tr,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
 
-    if (res['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('order_submitted_success'.tr),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-      _loadData(); // reload balance
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res['message'] ?? 'order_submit_error'.tr),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      final res = await _apiService.purchaseGift(giftId);
+
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
+
+      if (res['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('order_submitted_success'.tr),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+        _loadData(); // reload balance
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res['message'] ?? 'order_submit_error'.tr),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPurchasing = false);
+      } else {
+        _isPurchasing = false;
+      }
     }
+  }
+
+  Widget _buildGiftPlaceholderIcon(Color accentColor) {
+    return Container(
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accentColor.withValues(alpha: 0.22),
+            accentColor.withValues(alpha: 0.08),
+          ],
+        ),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: 0.2),
+            blurRadius: 16,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Center(
+        child: AppIcon(
+          AppIcons.gift,
+          size: 26,
+          color: accentColor,
+        ),
+      ),
+    );
   }
 
   @override
@@ -319,11 +617,9 @@ class _GiftScreenState extends State<GiftScreen> {
         final theme = Theme.of(context);
         final isDark = theme.brightness == Brightness.dark;
         final bgColor = theme.scaffoldBackgroundColor;
-        final cardColor = theme.colorScheme.surface;
         final accentColor = theme.colorScheme.primary;
         final textColor = theme.colorScheme.onSurface;
         final hintColor = textColor.withValues(alpha: 0.5);
-        final borderColor = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06);
 
         return Scaffold(
           backgroundColor: bgColor,
@@ -331,22 +627,25 @@ class _GiftScreenState extends State<GiftScreen> {
             backgroundColor: bgColor,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor, size: 20),
+              icon: AppIcon(AppIcons.arrowLeft, color: textColor, size: 20),
               onPressed: () => Navigator.pop(context),
             ),
-            title: Text(
+            title: WText(
               'gifts'.tr,
-              style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18),
+              className: 'text-lg font-bold',
+              color: textColor,
             ),
             centerTitle: true,
             actions: [
               IconButton(
-                icon: Icon(Icons.history_rounded, color: textColor, size: 22),
+                icon: AppIcon(AppIcons.history, color: textColor, size: 22),
                 tooltip: 'purchase_history'.tr,
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PurchasesScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const PurchasesScreen(),
+                    ),
                   );
                 },
               ),
@@ -354,244 +653,667 @@ class _GiftScreenState extends State<GiftScreen> {
           ),
           body: Column(
             children: [
-              // Current Balance Header
+              // Current Balance Header (VIP Rewards Banner)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                margin: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
+                margin: const EdgeInsets.fromLTRB(16, 6, 16, 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFEA3829), Color(0xFFBA1B0E)],
+                    colors: [Color(0xFFE52D27), Color(0xFFB31217)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: accentColor.withValues(alpha: 0.35),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
-                    )
+                      color: const Color(0xFFE52D27).withValues(alpha: 0.35),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${'your_points'.tr}:',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.bolt, color: Colors.white, size: 24),
-                        const SizedBox(width: 4),
-                        Text(
-                          NumberFormat('#,###').format(_userPoints).replaceAll(',', ' '),
-                          style: const TextStyle(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: Stack(
+                    children: [
+                      // Watermark background gift icon
+                      Positioned(
+                        right: -15,
+                        top: -15,
+                        child: Opacity(
+                          opacity: 0.09,
+                          child: const AppIcon(
+                            AppIcons.gift,
+                            size: 130,
                             color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 18,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const AppIcon(
+                                        AppIcons.star,
+                                        color: Colors.amberAccent,
+                                        size: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'your_points'.tr,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    const AppIcon(
+                                      AppIcons.points,
+                                      color: Colors.amberAccent,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      NumberFormat('#,###')
+                                          .format(_userPoints)
+                                          .replaceAll(',', ' '),
+                                      style: const TextStyle(
+                                        fontSize: 27,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'points_unit'.tr,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white.withValues(alpha: 0.85),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            // Purchase History Pill Button
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const PurchasesScreen(),
+                                  ),
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 13,
+                                    vertical: 9,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.18),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const AppIcon(
+                                        AppIcons.history,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'purchase_history'.tr,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
               // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: TextField(
-                  controller: _searchController,
-                  style: TextStyle(color: textColor),
-                  decoration: InputDecoration(
-                    hintText: 'search_gifts'.tr,
-                    hintStyle: TextStyle(color: hintColor, fontSize: 14),
-                    prefixIcon: Icon(CupertinoIcons.search, color: hintColor, size: 20),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.close, color: hintColor, size: 18),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: cardColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: borderColor),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 4.0,
+                ),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF18181B) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.08),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: borderColor),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(color: textColor, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'search_gifts'.tr,
+                      hintStyle: TextStyle(
+                        color: hintColor,
+                        fontSize: 13.5,
+                      ),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(13),
+                        child: AppIcon(
+                          AppIcons.search,
+                          color: hintColor,
+                          size: 19,
+                        ),
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: AppIcon(
+                                AppIcons.close,
+                                color: hintColor,
+                                size: 17,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: accentColor, width: 1.5),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   ),
                 ),
               ),
+              const SizedBox(height: 6),
 
-              // Grid
+              // Grid of Gifts
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _filteredGifts.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.card_giftcard_rounded, size: 60, color: hintColor),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'no_gifts_available'.tr,
-                                  style: TextStyle(color: hintColor, fontSize: 15),
-                                ),
-                              ],
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(22),
+                              decoration: BoxDecoration(
+                                color: accentColor.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: AppIcon(
+                                AppIcons.gift,
+                                size: 52,
+                                color: accentColor,
+                              ),
                             ),
-                          )
-                        : GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            const SizedBox(height: 16),
+                            WText(
+                              'no_gifts_available'.tr,
+                              className: 'text-sm font-semibold',
+                              color: hintColor,
+                            ),
+                          ],
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
-                              childAspectRatio: 0.76,
+                              childAspectRatio: 0.68,
                             ),
-                            itemCount: _filteredGifts.length,
-                            itemBuilder: (context, index) {
-                              final gift = _filteredGifts[index];
-                              final giftName = gift['name'] ?? 'unknown_gift'.tr;
-                              final giftPoints = gift['points'] ?? 0;
-                              final imageUrl = gift['imageUrl'];
+                        itemCount: _filteredGifts.length,
+                        itemBuilder: (context, index) {
+                          final gift = _filteredGifts[index];
+                          final giftName = gift['name'] ?? 'unknown_gift'.tr;
+                          final giftPoints = (gift['points'] ?? 0) as int;
+                          final imageUrl = gift['imageUrl'];
+                          final bool canAfford = _userPoints >= giftPoints;
 
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: cardColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: borderColor),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF18181C)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.07)
+                                    : Colors.black.withValues(alpha: 0.07),
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.25 : 0.04,
+                                  ),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    // Image Container
-                                    Expanded(
-                                      flex: 3,
-                                      child: ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                                        child: Container(
-                                          color: accentColor.withValues(alpha: 0.06),
-                                           child: (imageUrl != null && imageUrl.toString().isNotEmpty && ApiService.resolveImageUrl(imageUrl.toString()) != null)
-                                              ? Image.network(
-                                                  ApiService.resolveImageUrl(imageUrl.toString())!,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error, stackTrace) {
-                                                    return Center(
-                                                      child: Icon(
-                                                        Icons.card_giftcard_rounded,
-                                                        size: 44,
-                                                        color: accentColor,
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(19),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Image / Showcase Container
+                                  Expanded(
+                                    flex: 7,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: isDark
+                                                  ? [
+                                                      accentColor.withValues(
+                                                        alpha: 0.14,
                                                       ),
-                                                    );
-                                                  },
+                                                      const Color(0xFF121214),
+                                                      accentColor.withValues(
+                                                        alpha: 0.04,
+                                                      ),
+                                                    ]
+                                                  : [
+                                                      accentColor.withValues(
+                                                        alpha: 0.08,
+                                                      ),
+                                                      Colors.grey.shade100,
+                                                      accentColor.withValues(
+                                                        alpha: 0.02,
+                                                      ),
+                                                    ],
+                                            ),
+                                          ),
+                                          child:
+                                              (imageUrl != null &&
+                                                  imageUrl.toString().isNotEmpty &&
+                                                  ApiService.resolveImageUrl(
+                                                        imageUrl.toString(),
+                                                      ) !=
+                                                      null)
+                                              ? CachedNetworkImage(
+                                                  imageUrl:
+                                                      ApiService.resolveImageUrl(
+                                                        imageUrl.toString(),
+                                                      )!,
+                                                  fit: BoxFit.cover,
+                                                  memCacheWidth: 400,
+                                                  memCacheHeight: 400,
+                                                  placeholder:
+                                                      (context, url) => Center(
+                                                        child: SizedBox(
+                                                          width: 24,
+                                                          height: 24,
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                color: accentColor
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.5,
+                                                                    ),
+                                                              ),
+                                                        ),
+                                                      ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          Center(
+                                                            child:
+                                                                _buildGiftPlaceholderIcon(
+                                                                  accentColor,
+                                                                ),
+                                                          ),
                                                 )
                                               : Center(
-                                                  child: Icon(
-                                                    Icons.card_giftcard_rounded,
-                                                    size: 44,
-                                                    color: accentColor,
-                                                  ),
+                                                  child:
+                                                      _buildGiftPlaceholderIcon(
+                                                        accentColor,
+                                                      ),
                                                 ),
                                         ),
-                                      ),
-                                    ),
 
-                                    // Details & Button
-                                    Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            giftName,
-                                            style: TextStyle(
-                                              color: textColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13.5,
+                                        // Top brand badge
+                                        Positioned(
+                                          top: 8,
+                                          left: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 3,
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.6,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'VOLTECH',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.8,
+                                              ),
+                                            ),
                                           ),
-                                          const SizedBox(height: 6),
-                                          Row(
+                                        ),
+
+                                        // Top status pill (Mavjud / Points needed)
+                                        Positioned(
+                                          top: 8,
+                                          right: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: canAfford
+                                                  ? const Color(0xFF16A34A)
+                                                      .withValues(alpha: 0.9)
+                                                  : Colors.black.withValues(
+                                                      alpha: 0.65,
+                                                    ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (canAfford) ...[
+                                                  const Icon(
+                                                    Icons.check,
+                                                    size: 11,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    'available'.tr,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 9.5,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ] else ...[
+                                                  const AppIcon(
+                                                    AppIcons.lock,
+                                                    size: 10,
+                                                    color: Colors.white70,
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    '-${NumberFormat('#,###').format(giftPoints - _userPoints).replaceAll(',', ' ')}',
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 9.5,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Details & Action
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      12,
+                                      10,
+                                      12,
+                                      12,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Title (2 lines max for neatness)
+                                        SizedBox(
+                                          height: 34,
+                                          child: Text(
+                                            giftName,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: textColor,
+                                              height: 1.25,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+
+                                        // Points Chip
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 3.5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: accentColor.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(7),
+                                            border: Border.all(
+                                              color: accentColor.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(Icons.bolt, color: accentColor, size: 16),
-                                              const SizedBox(width: 2),
+                                              AppIcon(
+                                                AppIcons.points,
+                                                color: accentColor,
+                                                size: 13,
+                                              ),
+                                              const SizedBox(width: 4),
                                               Text(
-                                                NumberFormat('#,###').format(giftPoints).replaceAll(',', ' '),
+                                                NumberFormat('#,###')
+                                                    .format(giftPoints)
+                                                    .replaceAll(',', ' '),
                                                 style: TextStyle(
+                                                  fontSize: 12.5,
+                                                  fontWeight: FontWeight.w900,
                                                   color: accentColor,
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 13,
                                                 ),
                                               ),
                                               Text(
                                                 ' ${'points_unit'.tr}',
                                                 style: TextStyle(
-                                                  color: textColor.withValues(alpha: 0.6),
-                                                  fontSize: 11,
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: accentColor.withValues(
+                                                    alpha: 0.8,
+                                                  ),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 10),
+                                        ),
+                                        const SizedBox(height: 10),
 
-                                          // Olish / Purchase Button
-                                          SizedBox(
-                                            width: double.infinity,
-                                            height: 34,
-                                            child: ElevatedButton(
-                                              onPressed: () => _purchaseGift(gift),
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: accentColor,
-                                                foregroundColor: Colors.white,
-                                                elevation: 0,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                padding: EdgeInsets.zero,
+                                        // Claim / Locked Button
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () => _purchaseGift(gift),
+                                            borderRadius:
+                                                BorderRadius.circular(11),
+                                            child: Container(
+                                              height: 36,
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                gradient: canAfford
+                                                    ? const LinearGradient(
+                                                        colors: [
+                                                          Color(0xFFE52D27),
+                                                          Color(0xFFC71610),
+                                                        ],
+                                                      )
+                                                    : null,
+                                                color: canAfford
+                                                    ? null
+                                                    : (isDark
+                                                        ? Colors.white
+                                                            .withValues(
+                                                              alpha: 0.06,
+                                                            )
+                                                        : Colors.black
+                                                            .withValues(
+                                                              alpha: 0.05,
+                                                            )),
+                                                borderRadius:
+                                                    BorderRadius.circular(11),
+                                                border: canAfford
+                                                    ? null
+                                                    : Border.all(
+                                                        color: isDark
+                                                            ? Colors.white
+                                                                .withValues(
+                                                                  alpha: 0.08,
+                                                                )
+                                                            : Colors.black
+                                                                .withValues(
+                                                                  alpha: 0.08,
+                                                                ),
+                                                      ),
+                                                boxShadow: canAfford
+                                                    ? [
+                                                        BoxShadow(
+                                                          color: const Color(
+                                                            0xFFE52D27,
+                                                          ).withValues(
+                                                            alpha: 0.32,
+                                                          ),
+                                                          blurRadius: 8,
+                                                          offset: const Offset(
+                                                            0,
+                                                            3,
+                                                          ),
+                                                        ),
+                                                      ]
+                                                    : null,
                                               ),
-                                              child: Text(
-                                                'claim_gift'.tr,
-                                                style: const TextStyle(
-                                                  fontSize: 12.5,
-                                                  fontWeight: FontWeight.bold,
+                                              child: Center(
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    AppIcon(
+                                                      canAfford
+                                                          ? AppIcons.gift
+                                                          : AppIcons.lock,
+                                                      color: canAfford
+                                                          ? Colors.white
+                                                          : (isDark
+                                                              ? Colors.white38
+                                                              : Colors.black38),
+                                                      size: 14,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Text(
+                                                      canAfford
+                                                          ? 'claim_gift'.tr
+                                                          : 'not_enough_points'.tr,
+                                                      style: TextStyle(
+                                                        color: canAfford
+                                                            ? Colors.white
+                                                            : (isDark
+                                                                ? Colors.white38
+                                                                : Colors
+                                                                    .black38),
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),

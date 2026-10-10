@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class FaqScreen extends StatelessWidget {
   const FaqScreen({super.key});
@@ -11,7 +13,6 @@ class FaqScreen extends StatelessWidget {
       builder: (context, locale, child) {
         final theme = Theme.of(context);
         final bgColor = theme.scaffoldBackgroundColor;
-        final cardColor = theme.colorScheme.surface;
         final textColor = theme.colorScheme.onSurface;
         final subTextColor = textColor.withValues(alpha: 0.7);
 
@@ -21,10 +22,14 @@ class FaqScreen extends StatelessWidget {
             backgroundColor: bgColor,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: textColor),
+              icon: AppIcon(AppIcons.arrowLeft, color: textColor),
               onPressed: () => Navigator.pop(context),
             ),
-            title: Text('faq'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+            title: WText(
+              'faq'.tr,
+              className: 'text-lg font-semibold',
+              color: textColor,
+            ),
             centerTitle: true,
           ),
           body: Center(
@@ -32,11 +37,29 @@ class FaqScreen extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 680),
               child: ListView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 children: [
-                  _buildFaqItem('faq_q1'.tr, 'faq_a1'.tr, cardColor, textColor, subTextColor),
-                  _buildFaqItem('faq_q2'.tr, 'faq_a2'.tr, cardColor, textColor, subTextColor),
-                  _buildFaqItem('faq_q3'.tr, 'faq_a3'.tr, cardColor, textColor, subTextColor),
+                  _buildFaqItem(
+                    'faq_q1'.tr,
+                    'faq_a1'.tr,
+                    textColor,
+                    subTextColor,
+                  ),
+                  _buildFaqItem(
+                    'faq_q2'.tr,
+                    'faq_a2'.tr,
+                    textColor,
+                    subTextColor,
+                  ),
+                  _buildFaqItem(
+                    'faq_q3'.tr,
+                    'faq_a3'.tr,
+                    textColor,
+                    subTextColor,
+                  ),
                 ],
               ),
             ),
@@ -46,27 +69,39 @@ class FaqScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFaqItem(String question, String answer, Color cardColor, Color textColor, Color subTextColor) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ExpansionTile(
-        title: Text(
-          question,
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        iconColor: textColor,
-        collapsedIconColor: subTextColor,
-        childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-        children: [
-          Text(
-            answer,
-            style: TextStyle(color: subTextColor, fontSize: 14, height: 1.5),
+  Widget _buildFaqItem(
+    String question,
+    String answer,
+    Color textColor,
+    Color subTextColor,
+  ) {
+    return TwCard(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          title: WText(
+            question,
+            className: 'text-sm font-bold',
+            color: textColor,
           ),
-        ],
+          iconColor: textColor,
+          collapsedIconColor: subTextColor,
+          childrenPadding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: 16,
+          ),
+          children: [
+            WText(
+              answer,
+              className: 'text-sm leading-relaxed',
+              color: subTextColor,
+            ),
+          ],
+        ),
       ),
     );
   }

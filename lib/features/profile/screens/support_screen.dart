@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_service.dart';
-import 'package:flutter/cupertino.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -22,9 +23,11 @@ class _SupportScreenState extends State<SupportScreen> {
     _loadNumbers();
   }
 
-  Future<void> _loadNumbers() async {
+  Future<void> _loadNumbers({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
-    final response = await _apiService.getAdminPhoneNumbers();
+    final response = await _apiService.getAdminPhoneNumbers(
+      forceRefresh: forceRefresh,
+    );
     if (response['success'] == true && mounted) {
       final List<dynamic> allNumbers = response['data'] ?? [];
       setState(() {
@@ -41,7 +44,10 @@ class _SupportScreenState extends State<SupportScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('cant_call_phone'.tr), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text('cant_call_phone'.tr),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -51,7 +57,6 @@ class _SupportScreenState extends State<SupportScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bgColor = theme.scaffoldBackgroundColor;
-    final cardColor = theme.colorScheme.surface;
     final textColor = theme.colorScheme.onSurface;
 
     return Scaffold(
@@ -60,70 +65,112 @@ class _SupportScreenState extends State<SupportScreen> {
         backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: AppIcon(AppIcons.arrowLeft, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('contact_us'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: WText(
+          'contact_us'.tr,
+          className: 'text-lg font-semibold',
+          color: textColor,
+        ),
         centerTitle: true,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _phoneNumbers.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(CupertinoIcons.phone_circle, size: 64, color: textColor.withValues(alpha: 0.3)),
-                      const SizedBox(height: 16),
-                      Text('no_support_numbers'.tr, style: TextStyle(color: textColor.withValues(alpha: 0.6))),
-                    ],
-                  ),
-                )
-              : Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 680),
-                    child: ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      itemCount: _phoneNumbers.length,
-                      itemBuilder: (context, index) {
-                        final phoneObj = _phoneNumbers[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              )
-                            ]
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            leading: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.support_agent, color: theme.colorScheme.primary),
-                            ),
-                            title: Text(phoneObj['name'] ?? 'Admin', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-                            subtitle: Text(phoneObj['phoneNumber'] ?? '', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 15)),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.phone, color: Colors.green),
-                              onPressed: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
-                            ),
-                            onTap: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
-                          ),
-                        );
-                      },
+      body: RefreshIndicator(
+        onRefresh: () => _loadNumbers(forceRefresh: true),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _phoneNumbers.isEmpty
+            ? Center(
+                child: ListView(
+                  shrinkWrap: true,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    WColumn(
+                      className: 'items-center justify-center p-6',
+                      children: [
+                        AppIcon(
+                          AppIcons.phoneCall,
+                          size: 64,
+                          color: textColor.withValues(alpha: 0.3),
+                        ),
+                        const SizedBox(height: 16),
+                        WText(
+                          'no_support_numbers'.tr,
+                          className: 'text-sm text-gray-500',
+                          color: textColor.withValues(alpha: 0.6),
+                        ),
+                      ],
                     ),
+                  ],
+                ),
+              )
+            : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    itemCount: _phoneNumbers.length,
+                    itemBuilder: (context, index) {
+                      final phoneObj = _phoneNumbers[index];
+                      return TwCard(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        onTap: () => _launchPhone(phoneObj['phoneNumber'] ?? ''),
+                        child: Row(
+                          children: [
+                            WContainer(
+                              className: 'p-2.5 rounded-full bg-red-600/10',
+                              child: AppIcon(
+                                AppIcons.help,
+                                color: theme.colorScheme.primary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  WText(
+                                    phoneObj['name'] ?? 'Admin',
+                                    className: 'text-sm font-bold',
+                                    color: textColor,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  WText(
+                                    phoneObj['phoneNumber'] ?? '',
+                                    className: 'text-sm',
+                                    color: textColor.withValues(alpha: 0.7),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const AppIcon(
+                                AppIcons.phoneCall,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                              onPressed: () =>
+                                  _launchPhone(phoneObj['phoneNumber'] ?? ''),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
+              ),
+      ),
     );
   }
 }

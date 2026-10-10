@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'core/localization/app_localizations.dart';
@@ -7,8 +8,11 @@ import 'features/splash/screens/splash_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/scanner/screens/scanner_screen.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/demo/screens/twind_demo_screen.dart';
+import 'core/twind/twind_ui.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+final ValueNotifier<int> cardDesignNotifier = ValueNotifier<int>(0);
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> setThemeMode(ThemeMode mode) async {
@@ -16,7 +20,10 @@ Future<void> setThemeMode(ThemeMode mode) async {
     themeNotifier.value = mode;
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('app_theme_mode', mode == ThemeMode.light ? 'light' : 'dark');
+      await prefs.setString(
+        'app_theme_mode',
+        mode == ThemeMode.light ? 'light' : 'dark',
+      );
     } catch (_) {}
   }
 }
@@ -24,10 +31,17 @@ Future<void> setThemeMode(ThemeMode mode) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize flutter_twind configuration
+  WindConfig.initialize();
+  SmartStyleParser.addColorSystem('voltech', {
+    'red': AppTheme.voltechRed,
+    'gold': AppTheme.voltechGold,
+    'black': AppTheme.premiumBlack,
+    'dark': AppTheme.premiumDarkGray,
+  });
+
   // Lock orientation to portrait on iOS/phones for consistent Apple HIG compliant UX
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   try {
     final prefs = await SharedPreferences.getInstance();
@@ -41,6 +55,11 @@ void main() async {
     final savedLocale = prefs.getString('app_locale');
     if (savedLocale != null && ['uz', 'ru', 'en'].contains(savedLocale)) {
       localeNotifier.value = savedLocale;
+    }
+
+    final savedCardDesign = prefs.getInt('selected_card_design');
+    if (savedCardDesign != null) {
+      cardDesignNotifier.value = savedCardDesign;
     }
   } catch (_) {}
 
@@ -67,6 +86,7 @@ class LoyaltyApp extends StatelessWidget {
               navigatorKey: navigatorKey,
               routes: {
                 '/login': (context) => const LoginScreen(),
+                '/twind-demo': (context) => const TwindDemoScreen(),
               },
               home: const SplashScreen(),
             );
@@ -87,25 +107,39 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomeScreen(),
-    const ScannerScreen(),
-  ];
+  final List<Widget> _pages = [const HomeScreen(), const ScannerScreen()];
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(
       valueListenable: localeNotifier,
       builder: (context, locale, child) {
-        return Scaffold(
-          body: _pages[_currentIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            items: [
-              BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'basic'.tr), // Using 'basic' or could add 'home'
-              BottomNavigationBarItem(icon: const Icon(Icons.qr_code_scanner), label: 'scanner'.tr),
-            ],
+        return PopScope(
+          canPop: _currentIndex == 0,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) {
+              setState(() => _currentIndex = 0);
+            }
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: _currentIndex,
+              children: _pages,
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: [
+                BottomNavigationBarItem(
+                  icon: const AppIcon(AppIcons.home, size: 24),
+                  label: 'basic'.tr,
+                ),
+                BottomNavigationBarItem(
+                  icon: const AppIcon(AppIcons.scan, size: 24),
+                  label: 'scanner'.tr,
+                ),
+              ],
+            ),
           ),
         );
       },

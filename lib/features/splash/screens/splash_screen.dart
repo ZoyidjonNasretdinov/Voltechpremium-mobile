@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../auth/screens/pending_approval_screen.dart';
 import '../../../core/api_service.dart';
@@ -11,7 +12,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -22,12 +24,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeIn,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
 
     _animationController.forward();
@@ -39,21 +38,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final startTime = DateTime.now();
     final apiService = ApiService();
     final token = await apiService.getToken();
-    
+
+    // Start prefetching profile immediately while splash animation plays
+    Future<Map<String, dynamic>>? profileFuture;
+    if (token != null && token.isNotEmpty) {
+      profileFuture = apiService.getProfile();
+    }
+
     final elapsed = DateTime.now().difference(startTime);
-    final remaining = const Duration(seconds: 3) - elapsed;
+    final remaining = const Duration(seconds: 2) - elapsed;
     if (remaining > Duration.zero) {
       await Future.delayed(remaining);
     }
-    
+
     if (!mounted) return;
-    
-    if (token != null && token.isNotEmpty) {
-      final profileRes = await apiService.getProfile();
+
+    if (token != null && token.isNotEmpty && profileFuture != null) {
+      final profileRes = await profileFuture;
       if (!mounted) return;
-      
+
       if (profileRes['success'] == true) {
-        if (profileRes['data'] != null && profileRes['data']['status'] == 'PENDING') {
+        if (profileRes['data'] != null &&
+            profileRes['data']['status'] == 'PENDING') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => const PendingApprovalScreen(),
@@ -61,36 +67,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           );
         } else {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainNavigation(),
-            ),
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
           );
         }
       } else {
         final msg = profileRes['message']?.toString().toLowerCase() ?? '';
-        final isNetworkError = msg.contains('internet') || msg.contains('tarmoq');
+        final isNetworkError =
+            msg.contains('internet') || msg.contains('tarmoq');
         if (isNetworkError) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainNavigation(),
-            ),
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
           );
         } else {
           await apiService.logout();
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const LoginScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
       }
     } else {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
   }
@@ -104,22 +103,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: WColumn(
+            className: 'items-center justify-center p-6',
             children: [
-              Image.asset(
-                'assets/images/logo.png',
-                width: 250,
-                fit: BoxFit.contain,
+              WContainer(
+                className: 'p-6 rounded-3xl',
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 250,
+                  fit: BoxFit.contain,
+                ),
               ),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(),
+              const SizedBox(height: 36),
+              const CircularProgressIndicator(strokeWidth: 2.5),
             ],
           ),
         ),

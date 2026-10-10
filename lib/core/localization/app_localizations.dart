@@ -57,47 +57,74 @@ class AppLocalizations {
       'coming_soon': 'Tez kunda...',
       'product': 'Mahsulot',
       'faq_q1': 'Qanday qilib ball ishlashim mumkin?',
-      'faq_a1': 'Asosiy ekrandagi skaner tugmasi orqali xarid qilingan mahsulot QR kodini skanerlang.',
+      'faq_a1':
+          'Asosiy ekrandagi skaner tugmasi orqali xarid qilingan mahsulot QR kodini skanerlang.',
       'faq_q2': 'Ballarni nimalarga ishlatish mumkin?',
-      'faq_a2': 'Yig\'ilgan ballaringiz evaziga "Sovg\'alar" bo\'limidan vaucher, texnika yoki boshqa qimmatbaho sovg\'alarni xarid qilishingiz mumkin.',
+      'faq_a2':
+          'Yig\'ilgan ballaringiz evaziga "Sovg\'alar" bo\'limidan vaucher, texnika yoki boshqa qimmatbaho sovg\'alarni xarid qilishingiz mumkin.',
       'faq_q3': 'Parolimni qanday tiklayman?',
-      'faq_a3': 'Kirish ekranidagi "Parolni unutdingizmi?" tugmasini bosib, pochtangiz orqali tiklashingiz mumkin.',
+      'faq_a3':
+          'Kirish ekranidagi "Parolni unutdingizmi?" tugmasini bosib, pochtangiz orqali tiklashingiz mumkin.',
       'policy_title': 'Foydalanuvchi va Maxfiylik Siyosati',
       'policy_last_updated': 'Oxirgi yangilanish: 2026-yil avgust',
-      'policy_intro_subtitle': 'Voltech Premium sodiqlik dasturi va mobil ilovasidan foydalanish shartlari',
+      'policy_intro_subtitle':
+          'Voltech Premium sodiqlik dasturi va mobil ilovasidan foydalanish shartlari',
       'policy_sec1_title': '1. Umumiy qoidalar',
-      'policy_sec1_desc': 'Ushbu "Foydalanuvchi va Maxfiylik Siyosati" (keyingi o‘rinlarda "Siyosat") "Voltech Premium" mobil ilovasidan (keyingi o‘rinlarda "Ilova") foydalanish tartibini belgilaydi. Ilovadan ro‘yxatdan o‘tish yoki undan foydalanish orqali siz mazkur Siyosat shartlarini to‘liq va so‘zsiz qabul qilasiz.',
-      'policy_sec2_title': '2. Shaxsiy ma\'lumotlarni yig\'ish va qayta ishlash',
-      'policy_sec2_desc': 'Ilova xizmatlarini ko‘rsatish maqsadida foydalanuvchining ism-familiyasi va telefon raqami yig‘iladi. Yosh, viloyat va tuman kabi ma\'lumotlar mutlaqo ixtiyoriy bo‘lib, faqat hududiy xizmat ko‘rsatish va sovg‘alarni topshirishni qulaylashtirish uchun foydalanuvchi xohishiga ko‘ra taqdim etilishi mumkin. Shaxsiy ma\'lumotlar uchinchi shaxslarga berilmaydi va zamonaviy shifrlash protokollari bilan himoyalanadi.',
+      'policy_sec1_desc':
+          'Ushbu "Foydalanuvchi va Maxfiylik Siyosati" (keyingi o‘rinlarda "Siyosat") "Voltech Premium" mobil ilovasidan (keyingi o‘rinlarda "Ilova") foydalanish tartibini belgilaydi. Ilovadan ro‘yxatdan o‘tish yoki undan foydalanish orqali siz mazkur Siyosat shartlarini to‘liq va so‘zsiz qabul qilasiz.',
+      'policy_sec2_title':
+          '2. Shaxsiy ma\'lumotlarni yig\'ish va qayta ishlash',
+      'policy_sec2_desc':
+          'Ilova xizmatlarini ko‘rsatish maqsadida foydalanuvchining ism-familiyasi va telefon raqami yig‘iladi. Yosh, viloyat va tuman kabi ma\'lumotlar mutlaqo ixtiyoriy bo‘lib, faqat hududiy xizmat ko‘rsatish va sovg‘alarni topshirishni qulaylashtirish uchun foydalanuvchi xohishiga ko‘ra taqdim etilishi mumkin. Shaxsiy ma\'lumotlar uchinchi shaxslarga berilmaydi va zamonaviy shifrlash protokollari bilan himoyalanadi.',
       'policy_sec3_title': '3. QR Kodlar va Bonus ballari qoidalari',
-      'policy_sec3_desc': 'QR kodlar faqat asl Voltech Premium mahsulotlariga biriktirilgan bo‘lib, har bir kod faqat bir marta faollashtirilishi mumkin. Dasturiy ta\'minotdan g‘ayriqonuniy foydalanish, kodlarni soxtalashtirish yoki aldov yo‘li bilan ball to‘plash aniqlanganda, kompaniya foydalanuvchi hisobini bloklash va to‘plangan ballarni bekor qilish huquqini o‘zida saqlab qoladi.',
+      'policy_sec3_desc':
+          'QR kodlar faqat asl Voltech Premium mahsulotlariga biriktirilgan bo‘lib, har bir kod faqat bir marta faollashtirilishi mumkin. Dasturiy ta\'minotdan g‘ayriqonuniy foydalanish, kodlarni soxtalashtirish yoki aldov yo‘li bilan ball to‘plash aniqlanganda, kompaniya foydalanuvchi hisobini bloklash va to‘plangan ballarni bekor qilish huquqini o‘zida saqlab qoladi.',
       'policy_sec4_title': '4. Sovg\'alarni xarid qilish va yetkazib berish',
-      'policy_sec4_desc': 'To‘plangan bonus ballar "Sovg‘alar" bo‘limidagi katalogdagi mahsulotlarga almashtirilishi mumkin. Sovg‘a uchun yuborilgan buyurtma kompaniya ma\'muriyati tomonidan tekshiriladi va tasdiqlanadi. Bonus ballar naqd pulga yoki boshqa moliyaviy aktivlarga almashtirilmaydi.',
+      'policy_sec4_desc':
+          'To‘plangan bonus ballar "Sovg‘alar" bo‘limidagi katalogdagi mahsulotlarga almashtirilishi mumkin. Sovg‘a uchun yuborilgan buyurtma kompaniya ma\'muriyati tomonidan tekshiriladi va tasdiqlanadi. Bonus ballar naqd pulga yoki boshqa moliyaviy aktivlarga almashtirilmaydi.',
       'policy_sec5_title': '5. Foydalanuvchi huquqlari va Hisobni o‘chirish',
-      'policy_sec5_desc': 'Foydalanuvchi istalgan vaqtda o‘z shaxsiy ma\'lumotlarini tahrirlash yoki Ilovadagi "Hisobni o‘chirish" funksiyasi orqali barcha ma\'lumotlarini butunlay o‘chirib tashlash huquqiga ega. Hisob o‘chirilganda to‘plangan ballar va xaridlar tarixi qayta tiklanmaydi.',
+      'policy_sec5_desc':
+          'Foydalanuvchi istalgan vaqtda o‘z shaxsiy ma\'lumotlarini tahrirlash yoki Ilovadagi "Hisobni o‘chirish" funksiyasi orqali barcha ma\'lumotlarini butunlay o‘chirib tashlash huquqiga ega. Hisob o‘chirilganda to‘plangan ballar va xaridlar tarixi qayta tiklanmaydi.',
       'policy_sec6_title': '6. O‘zgartirishlar va Bog‘lanish',
-      'policy_sec6_desc': 'Kompaniya ushbu Siyosatga bir tomonlama tartibda o‘zgartirish kiritish huquqiga ega. Barcha savollar va murojaatlar bo‘yicha ilovaning "Qo‘llab-quvvatlash" bo‘limi orqali ma\'muriyat bilan bog‘lanishingiz mumkin.',
+      'policy_sec6_desc':
+          'Kompaniya ushbu Siyosatga bir tomonlama tartibda o‘zgartirish kiritish huquqiga ega. Barcha savollar va murojaatlar bo‘yicha ilovaning "Qo‘llab-quvvatlash" bo‘limi orqali ma\'muriyat bilan bog‘lanishingiz mumkin.',
       'terms_title': 'Xizmat ko‘rsatish shartlari',
       'terms_last_updated': 'Oxirgi yangilanish: 2026-yil avgust',
-      'terms_subtitle': 'Voltech Premium platformasi va xizmatlaridan foydalanish bo‘yicha ommaviy oferta va shartlar',
+      'terms_subtitle':
+          'Voltech Premium platformasi va xizmatlaridan foydalanish bo‘yicha ommaviy oferta va shartlar',
       'terms_sec1_title': '1. Umumiy qoidalar va shartlarni qabul qilish',
-      'terms_sec1_desc': 'Mazkur Xizmat ko‘rsatish shartlari (keyingi o‘rinlarda "Shartlar") "Voltech Premium" mobil ilovasi va sodiqlik tizimidan foydalanish tartibini belgilaydi. Ilovadan ro‘yxatdan o‘tish yoki xizmatlardan foydalanish orqali foydalanuvchi mazkur Shartlarni to‘liq va hech qanday istisnolarsiz qabul qilgan hisoblanadi.',
+      'terms_sec1_desc':
+          'Mazkur Xizmat ko‘rsatish shartlari (keyingi o‘rinlarda "Shartlar") "Voltech Premium" mobil ilovasi va sodiqlik tizimidan foydalanish tartibini belgilaydi. Ilovadan ro‘yxatdan o‘tish yoki xizmatlardan foydalanish orqali foydalanuvchi mazkur Shartlarni to‘liq va hech qanday istisnolarsiz qabul qilgan hisoblanadi.',
       'terms_sec2_title': '2. Sodiqlik dasturi va ballar hisoblanishi',
-      'terms_sec2_desc': 'Foydalanuvchilar (ustalar va mijozlar) rasmiy Voltech mahsulotlaridagi haqiqiy QR-kodlarni mobil ilova orqali skanerlash yo‘li bilan bonus ballarini to‘playdilar. Har bir mahsulot QR-kodi faqat 1 (bir) marta skanerlanishi mumkin. Takroriy yoki noqonuniy yo‘l bilan ball olishga urinish qat’iyan taqiqlanadi va bekor qilinadi.',
+      'terms_sec2_desc':
+          'Foydalanuvchilar (ustalar va mijozlar) rasmiy Voltech mahsulotlaridagi haqiqiy QR-kodlarni mobil ilova orqali skanerlash yo‘li bilan bonus ballarini to‘playdilar. Har bir mahsulot QR-kodi faqat 1 (bir) marta skanerlanishi mumkin. Takroriy yoki noqonuniy yo‘l bilan ball olishga urinish qat’iyan taqiqlanadi va bekor qilinadi.',
       'terms_sec3_title': '3. Sovg‘alar olish va yetkazib berish tartibi',
-      'terms_sec3_desc': 'To‘plangan ballar ilovaning "Sovg‘alar" bo‘limidagi mavjud mukofotlarga almashtirilishi mumkin. Sovg‘a buyurtmasi ma’muriyat tomonidan ko‘rib chiqiladi va tasdiqlanadi. Tasdiqlangan sovg‘alar belgilangan muddatda yetkazib beriladi yoki topshiriladi. Ballar naqd pulga almashtirilmaydi.',
+      'terms_sec3_desc':
+          'To‘plangan ballar ilovaning "Sovg‘alar" bo‘limidagi mavjud mukofotlarga almashtirilishi mumkin. Sovg‘a buyurtmasi ma’muriyat tomonidan ko‘rib chiqiladi va tasdiqlanadi. Tasdiqlangan sovg‘alar belgilangan muddatda yetkazib beriladi yoki topshiriladi. Ballar naqd pulga almashtirilmaydi.',
       'terms_sec4_title': '4. Foydalanuvchi majburiyatlari va taqiqlar',
-      'terms_sec4_desc': 'Foydalanuvchi o‘z hisob ma’lumotlari (parol, telefon) maxfiyligini saqlashga mas’uldir. Tizimga soxta ma’lumotlar kiritish, avtomatlashtirilgan botlar, skriptlar yoki noqonuniy QR generatorlardan foydalanish taqiqlanadi. Qoidabuzarlik aniqlangan taqdirda, foydalanuvchi hisobi ogohlantirishsiz bloklanadi va to‘plangan ballar bekor qilinadi.',
+      'terms_sec4_desc':
+          'Foydalanuvchi o‘z hisob ma’lumotlari (parol, telefon) maxfiyligini saqlashga mas’uldir. Tizimga soxta ma’lumotlar kiritish, avtomatlashtirilgan botlar, skriptlar yoki noqonuniy QR generatorlardan foydalanish taqiqlanadi. Qoidabuzarlik aniqlangan taqdirda, foydalanuvchi hisobi ogohlantirishsiz bloklanadi va to‘plangan ballar bekor qilinadi.',
       'terms_sec5_title': '5. Javobgarlikni cheklash',
-      'terms_sec5_desc': 'Voltech ma’muriyati ilovaning uzluksiz ishlashini ta’minlashga harakat qiladi, biroq internet provayderlar nosozligi, uchinchi tomon xizmatlari yoki fors-major holatlari sababli yuzaga kelgan vaqtinchalik uzilishlar uchun to‘g‘ridan-to‘g‘ri javobgar bo‘lmaydi.',
-      'terms_sec6_title': '6. Shartlarni o‘zgartirish va ma’muriyat bilan aloqa',
-      'terms_sec6_desc': 'Voltech ma’muriyati ushbu Shartlarga istalgan vaqtda bir tomonlama o‘zgartirish kiritish huquqini o‘zida saqlab qoladi. Yangilangan shartlar ilovada e’lon qilingan paytdan boshlab kuchga kiradi. Savol va takliflar bo‘yicha "Qo‘llab-quvvatlash" bo‘limi orqali murojaat qilishingiz mumkin.',
-      'policy_content': 'Ushbu ilovadan foydalanish orqali siz bizning shartlarimizga rozi bo\'lasiz. Sizning shaxsiy ma\'lumotlaringiz xavfsizligi kafolatlanadi. Loyiha qoidalari va bonus tizimidan faqat qoidalarga muvofiq foydalanish ruxsat etiladi.',
+      'terms_sec5_desc':
+          'Voltech ma’muriyati ilovaning uzluksiz ishlashini ta’minlashga harakat qiladi, biroq internet provayderlar nosozligi, uchinchi tomon xizmatlari yoki fors-major holatlari sababli yuzaga kelgan vaqtinchalik uzilishlar uchun to‘g‘ridan-to‘g‘ri javobgar bo‘lmaydi.',
+      'terms_sec6_title':
+          '6. Shartlarni o‘zgartirish va ma’muriyat bilan aloqa',
+      'terms_sec6_desc':
+          'Voltech ma’muriyati ushbu Shartlarga istalgan vaqtda bir tomonlama o‘zgartirish kiritish huquqini o‘zida saqlab qoladi. Yangilangan shartlar ilovada e’lon qilingan paytdan boshlab kuchga kiradi. Savol va takliflar bo‘yicha "Qo‘llab-quvvatlash" bo‘limi orqali murojaat qilishingiz mumkin.',
+      'policy_content':
+          'Ushbu ilovadan foydalanish orqali siz bizning shartlarimizga rozi bo\'lasiz. Sizning shaxsiy ma\'lumotlaringiz xavfsizligi kafolatlanadi. Loyiha qoidalari va bonus tizimidan faqat qoidalarga muvofiq foydalanish ruxsat etiladi.',
       'card_holder': 'Karta egasi',
       'current_balance': 'Joriy balans',
       'points': 'ball',
-      'card_info': 'Ushbu karta Volt Loyalty dasturi foydalanuvchilariga tegishli. Agar uni topib olsangiz, iltimos kompaniyaga qaytaring yoki +998901234567 raqamiga qo\'ng\'iroq qiling.',
+      'card_info':
+          'Ushbu karta Volt Loyalty dasturi foydalanuvchilariga tegishli. Agar uni topib olsangiz, iltimos kompaniyaga qaytaring yoki +998901234567 raqamiga qo\'ng\'iroq qiling.',
       'scanner': 'QR Skaner',
+      'flash_on': 'Chiroqni yoqish',
+      'flash_off': 'Chiroqni o\'chirish',
+      'flash_unavailable': 'Ushbu qurilmada chiroq mavjud emas',
+      'switch_camera': 'Kamerani almashtirish',
+      'single_camera_info': 'Boshqa kamera topilmadi',
+      'camera_switch_error': 'Kamerani almashtirishda xatolik',
       'login_title': 'Tizimga kirish',
       'login_subtitle': 'Xush kelibsiz! Davom etish uchun profilingizga kiring',
       'or_divider': 'yoki',
@@ -109,7 +136,8 @@ class AppLocalizations {
       'check_via_qr': 'QR orqali tekshirish',
       'forgot_password_title': 'Parolni tiklash',
       'enter_new_password': 'Yangi parolni kiriting',
-      'forgot_password_desc': 'Parolingizni tiklash uchun telefon raqamingiz va yangi parolingizni kiriting. SMS orqali kod yuboriladi.',
+      'forgot_password_desc':
+          'Parolingizni tiklash uchun telefon raqamingiz va yangi parolingizni kiriting. SMS orqali kod yuboriladi.',
       'new_password': 'Yangi parol',
       'confirm_new_password': 'Yangi parolni tasdiqlang',
       'send_code': 'Kodni yuborish',
@@ -117,8 +145,10 @@ class AppLocalizations {
       'cant_open_phone': 'Telefon raqamni ochib bo\'lmadi',
       'application_under_review': 'Arizangiz hali ko\'rib chiqilmoqda',
       'pending_approval_title': 'Arizangiz ko\'rib chiqilmoqda',
-      'pending_approval_desc': 'Ro\'yxatdan o\'tganingiz uchun rahmat! Ma\'muriyat profilingizni tasdiqlaganidan so\'ng tizimdan foydalanishingiz mumkin bo\'ladi.',
-      'contact_admin_desc': 'Tasdiqlashni tezlashtirish uchun Admin bilan bog\'lanishingiz mumkin:',
+      'pending_approval_desc':
+          'Ro\'yxatdan o\'tganingiz uchun rahmat! Ma\'muriyat profilingizni tasdiqlaganidan so\'ng tizimdan foydalanishingiz mumkin bo\'ladi.',
+      'contact_admin_desc':
+          'Tasdiqlashni tezlashtirish uchun Admin bilan bog\'lanishingiz mumkin:',
       'no_admin_phones': 'Hozircha admin raqamlari mavjud emas',
       'check_status_btn': 'Holatni tekshirish',
       'no_account': 'Akkauntingiz yo\'qmi? ',
@@ -170,7 +200,8 @@ class AppLocalizations {
       'no_activity': 'Hozircha faollik yo\'q',
       'image_uploaded': 'Rasm yuklandi',
       'profile_updated': 'Profil yangilandi',
-      'delete_account_confirm': 'Haqiqatan ham hisobingizni o\'chirmoqchimisiz? Barcha ma\'lumotlaringiz, to\'plangan ballaringiz va skanerlash tarixi butunlay o\'chiriladi. Bu amalni ortga qaytarib bo\'lmaydi.',
+      'delete_account_confirm':
+          'Haqiqatan ham hisobingizni o\'chirmoqchimisiz? Barcha ma\'lumotlaringiz, to\'plangan ballaringiz va skanerlash tarixi butunlay o\'chiriladi. Bu amalni ortga qaytarib bo\'lmaydi.',
       'account_deleted_success': 'Hisobingiz muvaffaqiyatli o\'chirildi',
       'status': 'Holati',
       'status_active': 'Faol (Yangi)',
@@ -182,9 +213,11 @@ class AppLocalizations {
       'understood': 'Tushunarli',
       'congratulations': 'Tabriklaymiz!',
       'loading': 'Yuklanmoqda...',
-      'login_to_add_points': 'Ushbu ballarni hisobingizga qo\'shish uchun tizimga kiring!',
+      'login_to_add_points':
+          'Ushbu ballarni hisobingizga qo\'shish uchun tizimga kiring!',
       'complaint_sent': 'Shikoyat yuborildi',
-      'camera_error': 'Kamerani ishga tushirib bo\'lmadi.\nIlovani qayta oching.',
+      'camera_error':
+          'Kamerani ishga tushirib bo\'lmadi.\nIlovani qayta oching.',
       'product_activated': 'Mahsulot muvaffaqiyatli faollashtirildi!',
       'for_product_activated': 'uchun muvaffaqiyatli faollashtirildi.',
       'points_earned': 'Ball to\'plandi',
@@ -199,7 +232,11 @@ class AppLocalizations {
       'get_gift_title': 'Sovg\'ani olish',
       'no_gifts_available': 'Hozircha sovg\'alar mavjud emas',
       'insufficient_points': 'Balansingizda yetarli ball yo\'q!',
-      'gift_order_desc': 'Hisobingizdan belgilangan miqdordagi ball yechiladi va sovg\'a buyurtmasi ma\'muriyatga yuboriladi.',
+      'not_enough_points': 'Yetarli emas',
+      'available': 'Mavjud',
+      'remaining_balance': 'Qoladigan balans',
+      'gift_order_desc':
+          'Hisobingizdan belgilangan miqdordagi ball yechiladi va sovg\'a buyurtmasi ma\'muriyatga yuboriladi.',
       'order_submitted_success': 'Buyurtma adminga muvaffaqiyatli yuborildi!',
       'order_submit_error': 'Buyurtma yuborishda xatolik yuz berdi',
       'no_support_numbers': 'Hozircha bog\'lanish uchun raqamlar yo\'q',
@@ -208,9 +245,12 @@ class AppLocalizations {
       'phone_number_label': 'Raqam:',
       'points_unit': 'ball',
       'enter_valid_phone': 'Iltimos, to\'g\'ri telefon raqam kiriting',
-      'enter_valid_name': 'Ism va familiya kamida 2 ta harfdan iborat bo\'lishi kerak',
+      'enter_valid_name':
+          'Ism va familiya kamida 2 ta harfdan iborat bo\'lishi kerak',
       'account_exists_title': 'Akkaunt allaqachon mavjud',
-      'account_exists_desc': 'Ushbu telefon raqami allaqachon ro\'yxatdan o\'tgan. Tizimga kirish yoki parolni tiklashni xohlaysizmi?',
+      'account_exists_desc':
+          'Ushbu telefon raqami allaqachon ro\'yxatdan o\'tgan. Tizimga kirish yoki parolni tiklashni xohlaysizmi?',
+      'invalid_credentials': 'Telefon raqam yoki parol xato',
     },
     'ru': {
       'welcome': 'Добро пожаловать',
@@ -254,47 +294,72 @@ class AppLocalizations {
       'coming_soon': 'Скоро...',
       'product': 'Товар',
       'faq_q1': 'Как я могу заработать баллы?',
-      'faq_a1': 'Сканируйте QR-код купленного товара с помощью кнопки сканера на главном экране.',
+      'faq_a1':
+          'Сканируйте QR-код купленного товара с помощью кнопки сканера на главном экране.',
       'faq_q2': 'На что можно потратить баллы?',
-      'faq_a2': 'Накопленные баллы можно обменять на ваучеры, технику или другие подарки в разделе "Подарки".',
+      'faq_a2':
+          'Накопленные баллы можно обменять на ваучеры, технику или другие подарки в разделе "Подарки".',
       'faq_q3': 'Как восстановить пароль?',
-      'faq_a3': 'Нажмите "Забыли пароль?" на экране входа и восстановите через почту.',
+      'faq_a3':
+          'Нажмите "Забыли пароль?" на экране входа и восстановите через почту.',
       'policy_title': 'Политика конфиденциальности и Условия',
       'policy_last_updated': 'Последнее обновление: Август 2026',
-      'policy_intro_subtitle': 'Условия использования программы лояльности и мобильного приложения Voltech Premium',
+      'policy_intro_subtitle':
+          'Условия использования программы лояльности и мобильного приложения Voltech Premium',
       'policy_sec1_title': '1. Общие положения',
-      'policy_sec1_desc': 'Настоящая "Политика конфиденциальности и Условия использования" (далее — "Политика") регулирует порядок использования мобильного приложения "Voltech Premium" (далее — "Приложение"). Регистрируясь или используя Приложение, вы безоговорочно принимаете все условия настоящей Политики.',
+      'policy_sec1_desc':
+          'Настоящая "Политика конфиденциальности и Условия использования" (далее — "Политика") регулирует порядок использования мобильного приложения "Voltech Premium" (далее — "Приложение"). Регистрируясь или используя Приложение, вы безоговорочно принимаете все условия настоящей Политики.',
       'policy_sec2_title': '2. Сбор и обработка персональных данных',
-      'policy_sec2_desc': 'Для предоставления услуг собираются следующие данные: имя, фамилия и номер телефона. Такие данные, как возраст, регион и район проживания, являются абсолютно добровольными (необязательными) и запрашиваются только по желанию пользователя для упрощения регионального обслуживания и вручения подарков. Ваши данные надежно зашифрованы и не передаются третьим лицам.',
+      'policy_sec2_desc':
+          'Для предоставления услуг собираются следующие данные: имя, фамилия и номер телефона. Такие данные, как возраст, регион и район проживания, являются абсолютно добровольными (необязательными) и запрашиваются только по желанию пользователя для упрощения регионального обслуживания и вручения подарков. Ваши данные надежно зашифрованы и не передаются третьим лицам.',
       'policy_sec3_title': '3. QR-коды и Программа начисления баллов',
-      'policy_sec3_desc': 'QR-коды нанесены исключительно на оригинальную продукцию Voltech Premium. Каждый QR-код может быть активирован только один раз. В случае выявления попыток накрутки, подделки кодов или недобросовестного использования, администрация оставляет за собой право аннулировать баллы и заблокировать аккаунт.',
+      'policy_sec3_desc':
+          'QR-коды нанесены исключительно на оригинальную продукцию Voltech Premium. Каждый QR-код может быть активирован только один раз. В случае выявления попыток накрутки, подделки кодов или недобросовестного использования, администрация оставляет за собой право аннулировать баллы и заблокировать аккаунт.',
       'policy_sec4_title': '4. Порядок заказа и выдачи подарков',
-      'policy_sec4_desc': 'Накопленные баллы могут быть обменяны на товары и подарки из каталога. Все заявки на получение подарков проходят модерацию администрацией. Бонусные баллы не подлежат обмену на наличные денежные средства.',
+      'policy_sec4_desc':
+          'Накопленные баллы могут быть обменяны на товары и подарки из каталога. Все заявки на получение подарков проходят модерацию администрацией. Бонусные баллы не подлежат обмену на наличные денежные средства.',
       'policy_sec5_title': '5. Права пользователя и Удаление аккаунта',
-      'policy_sec5_desc': 'Пользователь имеет право в любой момент изменить свои личные данные или полностью удалить свой аккаунт через раздел настроек. При удалении аккаунта все неиспользованные баллы и история операций аннулируются без возможности восстановления.',
+      'policy_sec5_desc':
+          'Пользователь имеет право в любой момент изменить свои личные данные или полностью удалить свой аккаунт через раздел настроек. При удалении аккаунта все неиспользованные баллы и история операций аннулируются без возможности восстановления.',
       'policy_sec6_title': '6. Изменения и Контакты',
-      'policy_sec6_desc': 'Компания оставляет за собой право вносить изменения в настоящую Политику. По всем вопросам и обращениям вы можете связаться с администрацией через раздел "Служба поддержки" в приложении.',
+      'policy_sec6_desc':
+          'Компания оставляет за собой право вносить изменения в настоящую Политику. По всем вопросам и обращениям вы можете связаться с администрацией через раздел "Служба поддержки" в приложении.',
       'terms_title': 'Условия обслуживания',
       'terms_last_updated': 'Последнее обновление: Август 2026',
-      'terms_subtitle': 'Публичная оферта и правила использования платформы Voltech Premium',
+      'terms_subtitle':
+          'Публичная оферта и правила использования платформы Voltech Premium',
       'terms_sec1_title': '1. Общие положения и принятие условий',
-      'terms_sec1_desc': 'Настоящие Условия обслуживания (далее "Условия") определяют порядок использования мобильного приложения и программы лояльности "Voltech Premium". Регистрация или использование сервиса означает полное и безоговорочное согласие пользователя с настоящими Условиями.',
+      'terms_sec1_desc':
+          'Настоящие Условия обслуживания (далее "Условия") определяют порядок использования мобильного приложения и программы лояльности "Voltech Premium". Регистрация или использование сервиса означает полное и безоговорочное согласие пользователя с настоящими Условиями.',
       'terms_sec2_title': '2. Программа лояльности и начисление баллов',
-      'terms_sec2_desc': 'Пользователи (мастера и клиенты) накапливают бонусные баллы путем сканирования подлинных QR-кодов на оригинальной продукции Voltech. Каждый QR-код может быть активирован только 1 (один) раз. Попытки мошеннического или повторного сканирования строго запрещены и аннулируются.',
+      'terms_sec2_desc':
+          'Пользователи (мастера и клиенты) накапливают бонусные баллы путем сканирования подлинных QR-кодов на оригинальной продукции Voltech. Каждый QR-код может быть активирован только 1 (один) раз. Попытки мошеннического или повторного сканирования строго запрещены и аннулируются.',
       'terms_sec3_title': '3. Заказ и получение подарков',
-      'terms_sec3_desc': 'Накопленные баллы можно обменять на ценные подарки в разделе "Подарки". Заявка рассматривается и утверждается администрацией. Доставка или выдача подарка осуществляется в установленные сроки. Баллы не подлежат обмену на наличные денежные средства.',
+      'terms_sec3_desc':
+          'Накопленные баллы можно обменять на ценные подарки в разделе "Подарки". Заявка рассматривается и утверждается администрацией. Доставка или выдача подарка осуществляется в установленные сроки. Баллы не подлежат обмену на наличные денежные средства.',
       'terms_sec4_title': '4. Обязанности пользователя и запреты',
-      'terms_sec4_desc': 'Пользователь несет ответственность за безопасность учетных данных (пароль, телефон). Запрещается использование автоматизированных скриптов, ботов или генераторов QR-кодов. При выявлении нарушений аккаунт блокируется без предупреждения с аннулированием всех баллов.',
+      'terms_sec4_desc':
+          'Пользователь несет ответственность за безопасность учетных данных (пароль, телефон). Запрещается использование автоматизированных скриптов, ботов или генераторов QR-кодов. При выявлении нарушений аккаунт блокируется без предупреждения с аннулированием всех баллов.',
       'terms_sec5_title': '5. Ограничение ответственности',
-      'terms_sec5_desc': 'Администрация Voltech стремится к бесперебойной работе сервиса, однако не несет ответственности за временные технические сбои, вызванные интернет-провайдерами, сторонними сервисами или обстоятельствами непреодолимой силы.',
+      'terms_sec5_desc':
+          'Администрация Voltech стремится к бесперебойной работе сервиса, однако не несет ответственности за временные технические сбои, вызванные интернет-провайдерами, сторонними сервисами или обстоятельствами непреодолимой силы.',
       'terms_sec6_title': '6. Изменения условий и обратная связь',
-      'terms_sec6_desc': 'Администрация оставляет за собой право вносить изменения в настоящие Условия в одностороннем порядке. Обновления вступают в силу с момента их публикации в приложении. По всем вопросам обращайтесь в раздел "Служба поддержки".',
-      'policy_content': 'Используя это приложение, вы соглашаетесь с нашими условиями. Безопасность ваших личных данных гарантируется. Система бонусов может использоваться только в соответствии с правилами проекта.',
+      'terms_sec6_desc':
+          'Администрация оставляет за собой право вносить изменения в настоящие Условия в одностороннем порядке. Обновления вступают в силу с момента их публикации в приложении. По всем вопросам обращайтесь в раздел "Служба поддержки".',
+      'policy_content':
+          'Используя это приложение, вы соглашаетесь с нашими условиями. Безопасность ваших личных данных гарантируется. Система бонусов может использоваться только в соответствии с правилами проекта.',
       'card_holder': 'Владелец карты',
       'current_balance': 'Текущий баланс',
       'points': 'баллов',
-      'card_info': 'Эта карта принадлежит пользователю программы Volt Loyalty. Если вы ее нашли, пожалуйста, верните в компанию или позвоните по номеру +998901234567.',
+      'card_info':
+          'Эта карта принадлежит пользователю программы Volt Loyalty. Если вы ее нашли, пожалуйста, верните в компанию или позвоните по номеру +998901234567.',
       'scanner': 'QR Сканер',
+      'flash_on': 'Включить вспышку',
+      'flash_off': 'Выключить вспышку',
+      'flash_unavailable': 'Вспышка недоступна на этом устройстве',
+      'switch_camera': 'Переключить камеру',
+      'single_camera_info': 'Другая камера не найдена',
+      'camera_switch_error': 'Ошибка переключения камеры',
       'login_title': 'Вход в систему',
       'login_subtitle': 'Добро пожаловать! Войдите в свой профиль',
       'or_divider': 'или',
@@ -307,7 +372,8 @@ class AppLocalizations {
       'check_via_qr': 'Проверка через QR',
       'forgot_password_title': 'Сброс пароля',
       'enter_new_password': 'Введите новый пароль',
-      'forgot_password_desc': 'Для сброса пароля введите свой номер телефона и новый пароль. Код будет отправлен по SMS.',
+      'forgot_password_desc':
+          'Для сброса пароля введите свой номер телефона и новый пароль. Код будет отправлен по SMS.',
       'new_password': 'Новый пароль',
       'confirm_new_password': 'Подтвердите новый пароль',
       'send_code': 'Отправить код',
@@ -315,8 +381,10 @@ class AppLocalizations {
       'cant_open_phone': 'Не удалось открыть номер телефона',
       'application_under_review': 'Ваша заявка все еще рассматривается',
       'pending_approval_title': 'Ваша заявка рассматривается',
-      'pending_approval_desc': 'Спасибо за регистрацию! После того как администрация подтвердит ваш профиль, вы сможете пользоваться системой.',
-      'contact_admin_desc': 'Чтобы ускорить подтверждение, вы можете связаться с администратором:',
+      'pending_approval_desc':
+          'Спасибо за регистрацию! После того как администрация подтвердит ваш профиль, вы сможете пользоваться системой.',
+      'contact_admin_desc':
+          'Чтобы ускорить подтверждение, вы можете связаться с администратором:',
       'no_admin_phones': 'В настоящее время номеров администраторов нет',
       'check_status_btn': 'Проверить статус',
       'no_account': 'Нет аккаунта? ',
@@ -368,7 +436,8 @@ class AppLocalizations {
       'no_activity': 'Пока нет активности',
       'image_uploaded': 'Изображение загружено',
       'profile_updated': 'Профиль обновлен',
-      'delete_account_confirm': 'Вы действительно хотите удалить свой аккаунт? Все ваши личные данные, накопленные баллы и история будут безвозвратно удалены. Это действие необратимо.',
+      'delete_account_confirm':
+          'Вы действительно хотите удалить свой аккаунт? Все ваши личные данные, накопленные баллы и история будут безвозвратно удалены. Это действие необратимо.',
       'account_deleted_success': 'Ваш аккаунт был успешно удален',
       'status': 'Статус',
       'status_active': 'Активный (Новый)',
@@ -380,7 +449,8 @@ class AppLocalizations {
       'understood': 'Понятно',
       'congratulations': 'Поздравляем!',
       'loading': 'Загрузка...',
-      'login_to_add_points': 'Войдите в систему, чтобы добавить эти баллы на свой счет!',
+      'login_to_add_points':
+          'Войдите в систему, чтобы добавить эти баллы на свой счет!',
       'complaint_sent': 'Жалоба отправлена',
       'camera_error': 'Не удалось запустить камеру.\nПерезапустите приложение.',
       'product_activated': 'Товар успешно активирован!',
@@ -397,7 +467,11 @@ class AppLocalizations {
       'get_gift_title': 'Получить подарок',
       'no_gifts_available': 'Подарки пока недоступны',
       'insufficient_points': 'Недостаточно баллов на балансе!',
-      'gift_order_desc': 'С вашего счета спишется указанное количество баллов, а заявка на подарок будет отправлена администрации.',
+      'not_enough_points': 'Недостаточно',
+      'available': 'Доступно',
+      'remaining_balance': 'Остаток баланса',
+      'gift_order_desc':
+          'С вашего счета спишется указанное количество баллов, а заявка на подарок будет отправлена администрации.',
       'order_submitted_success': 'Заказ успешно отправлен администратору!',
       'order_submit_error': 'Ошибка при отправке заказа',
       'no_support_numbers': 'Контакты для связи пока отсутствуют',
@@ -408,7 +482,9 @@ class AppLocalizations {
       'enter_valid_phone': 'Пожалуйста, введите корректный номер телефона',
       'enter_valid_name': 'Имя и фамилия должны содержать не менее 2 букв',
       'account_exists_title': 'Аккаунт уже существует',
-      'account_exists_desc': 'Этот номер телефона уже зарегистрирован. Хотите войти или сбросить пароль?',
+      'account_exists_desc':
+          'Этот номер телефона уже зарегистрирован. Хотите войти или сбросить пароль?',
+      'invalid_credentials': 'Неверный номер телефона или пароль',
     },
     'en': {
       'welcome': 'Welcome',
@@ -452,47 +528,72 @@ class AppLocalizations {
       'coming_soon': 'Coming soon...',
       'product': 'Product',
       'faq_q1': 'How can I earn points?',
-      'faq_a1': 'Scan the QR code of a purchased product using the scanner button on the home screen.',
+      'faq_a1':
+          'Scan the QR code of a purchased product using the scanner button on the home screen.',
       'faq_q2': 'What can I use points for?',
-      'faq_a2': 'You can exchange your accumulated points for vouchers, electronics, or other gifts in the "Gifts" section.',
+      'faq_a2':
+          'You can exchange your accumulated points for vouchers, electronics, or other gifts in the "Gifts" section.',
       'faq_q3': 'How do I reset my password?',
-      'faq_a3': 'Click "Forgot password?" on the login screen and reset it via email.',
+      'faq_a3':
+          'Click "Forgot password?" on the login screen and reset it via email.',
       'policy_title': 'Privacy Policy & Terms of Service',
       'policy_last_updated': 'Last updated: August 2026',
-      'policy_intro_subtitle': 'Terms and conditions for using the Voltech Premium loyalty app',
+      'policy_intro_subtitle':
+          'Terms and conditions for using the Voltech Premium loyalty app',
       'policy_sec1_title': '1. General Provisions',
-      'policy_sec1_desc': 'This "Privacy Policy and Terms of Service" (hereinafter "Policy") governs the use of the "Voltech Premium" mobile application (hereinafter "App"). By registering or using the App, you fully and unconditionally agree to all terms of this Policy.',
+      'policy_sec1_desc':
+          'This "Privacy Policy and Terms of Service" (hereinafter "Policy") governs the use of the "Voltech Premium" mobile application (hereinafter "App"). By registering or using the App, you fully and unconditionally agree to all terms of this Policy.',
       'policy_sec2_title': '2. Collection and Processing of Personal Data',
-      'policy_sec2_desc': 'To provide our loyalty services, we collect: full name and phone number. Additional details such as age, region, and district are entirely optional and collected only if provided by the user to facilitate regional service and gift delivery. Personal data is used solely for user authentication, gift delivery, and loyalty program management. Your data is encrypted and never shared with third parties.',
+      'policy_sec2_desc':
+          'To provide our loyalty services, we collect: full name and phone number. Additional details such as age, region, and district are entirely optional and collected only if provided by the user to facilitate regional service and gift delivery. Personal data is used solely for user authentication, gift delivery, and loyalty program management. Your data is encrypted and never shared with third parties.',
       'policy_sec3_title': '3. QR Codes & Bonus Points System',
-      'policy_sec3_desc': 'QR codes are attached exclusively to original Voltech Premium products. Each QR code can only be activated once. Any attempt of fraudulent activity, code forging, or unauthorized exploitation will result in account suspension and forfeiture of points.',
+      'policy_sec3_desc':
+          'QR codes are attached exclusively to original Voltech Premium products. Each QR code can only be activated once. Any attempt of fraudulent activity, code forging, or unauthorized exploitation will result in account suspension and forfeiture of points.',
       'policy_sec4_title': '4. Gift Exchange and Delivery',
-      'policy_sec4_desc': 'Accumulated points can be redeemed for gifts and products available in the catalog. All redemption requests are reviewed and approved by the administration. Bonus points cannot be exchanged for cash or monetary equivalents.',
+      'policy_sec4_desc':
+          'Accumulated points can be redeemed for gifts and products available in the catalog. All redemption requests are reviewed and approved by the administration. Bonus points cannot be exchanged for cash or monetary equivalents.',
       'policy_sec5_title': '5. User Rights & Account Deletion',
-      'policy_sec5_desc': 'Users have the right to modify their profile details at any time or permanently delete their account via the App settings. Upon deletion, all remaining points and transaction history will be permanently erased.',
+      'policy_sec5_desc':
+          'Users have the right to modify their profile details at any time or permanently delete their account via the App settings. Upon deletion, all remaining points and transaction history will be permanently erased.',
       'policy_sec6_title': '6. Amendments & Contact Information',
-      'policy_sec6_desc': 'The company reserves the right to update this Policy at any time. For any inquiries, please contact our team through the "Support" section in the App.',
+      'policy_sec6_desc':
+          'The company reserves the right to update this Policy at any time. For any inquiries, please contact our team through the "Support" section in the App.',
       'terms_title': 'Terms of Service',
       'terms_last_updated': 'Last updated: August 2026',
-      'terms_subtitle': 'Public terms of use and service agreement for the Voltech Premium platform',
+      'terms_subtitle':
+          'Public terms of use and service agreement for the Voltech Premium platform',
       'terms_sec1_title': '1. General Provisions & Acceptance',
-      'terms_sec1_desc': 'These Terms of Service (hereinafter "Terms") govern the use of the "Voltech Premium" mobile application and loyalty ecosystem. By creating an account or accessing the app, you irrevocably agree to comply with and be bound by these Terms.',
+      'terms_sec1_desc':
+          'These Terms of Service (hereinafter "Terms") govern the use of the "Voltech Premium" mobile application and loyalty ecosystem. By creating an account or accessing the app, you irrevocably agree to comply with and be bound by these Terms.',
       'terms_sec2_title': '2. Loyalty Program & Bonus Points',
-      'terms_sec2_desc': 'Users (masters and clients) accumulate reward points by scanning genuine QR codes on authentic Voltech products. Each QR code is uniquely redeemable exactly once. Any attempts at fraudulent, automated, or duplicated scanning will be permanently revoked.',
+      'terms_sec2_desc':
+          'Users (masters and clients) accumulate reward points by scanning genuine QR codes on authentic Voltech products. Each QR code is uniquely redeemable exactly once. Any attempts at fraudulent, automated, or duplicated scanning will be permanently revoked.',
       'terms_sec3_title': '3. Gift Redemption & Fulfillment',
-      'terms_sec3_desc': 'Accumulated bonus points may be redeemed for gifts and rewards available in the "Gifts" catalog. Redemptions are reviewed and approved by administrators before delivery or handover. Points have no monetary cash value and cannot be exchanged for currency.',
+      'terms_sec3_desc':
+          'Accumulated bonus points may be redeemed for gifts and rewards available in the "Gifts" catalog. Redemptions are reviewed and approved by administrators before delivery or handover. Points have no monetary cash value and cannot be exchanged for currency.',
       'terms_sec4_title': '4. User Conduct & Security',
-      'terms_sec4_desc': 'Users are strictly responsible for preserving the confidentiality of their credentials. The use of automated tools, scripts, fake QR generators, or illicit activities is strictly forbidden and results in immediate account termination and forfeiture of all points.',
+      'terms_sec4_desc':
+          'Users are strictly responsible for preserving the confidentiality of their credentials. The use of automated tools, scripts, fake QR generators, or illicit activities is strictly forbidden and results in immediate account termination and forfeiture of all points.',
       'terms_sec5_title': '5. Limitation of Liability',
-      'terms_sec5_desc': 'Voltech strives to ensure seamless 24/7 service accessibility, but shall not be held liable for disruptions arising from third-party network outages, hardware failures, or force majeure events beyond our reasonable control.',
+      'terms_sec5_desc':
+          'Voltech strives to ensure seamless 24/7 service accessibility, but shall not be held liable for disruptions arising from third-party network outages, hardware failures, or force majeure events beyond our reasonable control.',
       'terms_sec6_title': '6. Amendments & Contact Support',
-      'terms_sec6_desc': 'Voltech reserves the right to modify these Terms at any time. Changes become effective immediately upon being published in the application. For inquiries and feedback, please contact our support team via the "Support" section.',
-      'policy_content': 'By using this application, you agree to our terms and conditions. The security of your personal data is guaranteed. The bonus system may only be used in accordance with the project rules.',
+      'terms_sec6_desc':
+          'Voltech reserves the right to modify these Terms at any time. Changes become effective immediately upon being published in the application. For inquiries and feedback, please contact our support team via the "Support" section.',
+      'policy_content':
+          'By using this application, you agree to our terms and conditions. The security of your personal data is guaranteed. The bonus system may only be used in accordance with the project rules.',
       'card_holder': 'Card Holder name',
       'current_balance': 'Current Balance',
       'points': 'points',
-      'card_info': 'This card belongs to a user of the Volt Loyalty program. If you find it, please return it to the company or call +998901234567.',
+      'card_info':
+          'This card belongs to a user of the Volt Loyalty program. If you find it, please return it to the company or call +998901234567.',
       'scanner': 'QR Scanner',
+      'flash_on': 'Turn on flash',
+      'flash_off': 'Turn off flash',
+      'flash_unavailable': 'Flashlight is not available on this device',
+      'switch_camera': 'Switch camera',
+      'single_camera_info': 'No other camera found',
+      'camera_switch_error': 'Error switching camera',
       'login_title': 'Sign In',
       'login_subtitle': 'Welcome back! Sign in to access your profile',
       'or_divider': 'or',
@@ -505,7 +606,8 @@ class AppLocalizations {
       'check_via_qr': 'Check via QR',
       'forgot_password_title': 'Reset Password',
       'enter_new_password': 'Enter new password',
-      'forgot_password_desc': 'To reset your password, enter your phone number and a new password. A code will be sent via SMS.',
+      'forgot_password_desc':
+          'To reset your password, enter your phone number and a new password. A code will be sent via SMS.',
       'new_password': 'New password',
       'confirm_new_password': 'Confirm new password',
       'send_code': 'Send code',
@@ -513,7 +615,8 @@ class AppLocalizations {
       'cant_open_phone': 'Could not open phone number',
       'application_under_review': 'Your application is still under review',
       'pending_approval_title': 'Your application is under review',
-      'pending_approval_desc': 'Thank you for registering! Once the administration approves your profile, you will be able to use the system.',
+      'pending_approval_desc':
+          'Thank you for registering! Once the administration approves your profile, you will be able to use the system.',
       'contact_admin_desc': 'To speed up approval, you can contact an Admin:',
       'no_admin_phones': 'No admin phone numbers available at the moment',
       'check_status_btn': 'Check Status',
@@ -566,7 +669,8 @@ class AppLocalizations {
       'no_activity': 'No activity yet',
       'image_uploaded': 'Image uploaded',
       'profile_updated': 'Profile updated',
-      'delete_account_confirm': 'Are you sure you want to delete your account? All your personal data, accumulated points, and scan history will be permanently erased. This action cannot be undone.',
+      'delete_account_confirm':
+          'Are you sure you want to delete your account? All your personal data, accumulated points, and scan history will be permanently erased. This action cannot be undone.',
       'account_deleted_success': 'Your account has been successfully deleted',
       'status': 'Status',
       'status_active': 'Active (New)',
@@ -595,8 +699,13 @@ class AppLocalizations {
       'get_gift_title': 'Claim gift',
       'no_gifts_available': 'No gifts available right now',
       'insufficient_points': 'Insufficient points on your balance!',
-      'gift_order_desc': 'The required points will be deducted from your account and the order will be sent to administration.',
-      'order_submitted_success': 'Order successfully submitted to the administrator!',
+      'not_enough_points': 'Not enough',
+      'available': 'Available',
+      'remaining_balance': 'Remaining balance',
+      'gift_order_desc':
+          'The required points will be deducted from your account and the order will be sent to administration.',
+      'order_submitted_success':
+          'Order successfully submitted to the administrator!',
       'order_submit_error': 'Error while submitting order',
       'no_support_numbers': 'No contact numbers available at the moment',
       'cant_call_phone': 'Could not open phone dialer',
@@ -604,10 +713,13 @@ class AppLocalizations {
       'phone_number_label': 'Phone:',
       'points_unit': 'pts',
       'enter_valid_phone': 'Please enter a valid phone number',
-      'enter_valid_name': 'First and last name must contain at least 2 characters',
+      'enter_valid_name':
+          'First and last name must contain at least 2 characters',
       'account_exists_title': 'Account already exists',
-      'account_exists_desc': 'This phone number is already registered. Would you like to log in or reset your password?',
-    }
+      'account_exists_desc':
+          'This phone number is already registered. Would you like to log in or reset your password?',
+      'invalid_credentials': 'Invalid phone number or password',
+    },
   };
 
   static String get(String key) {

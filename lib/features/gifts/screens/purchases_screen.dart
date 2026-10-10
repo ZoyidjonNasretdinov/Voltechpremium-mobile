@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/api_service.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class PurchasesScreen extends StatefulWidget {
   const PurchasesScreen({super.key});
@@ -29,7 +32,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     });
 
     final response = await _apiService.getPurchaseHistory();
-    
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -46,7 +49,6 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bgColor = theme.scaffoldBackgroundColor;
-    final cardColor = theme.colorScheme.surface;
     final textColor = theme.colorScheme.onSurface;
 
     return Scaffold(
@@ -55,139 +57,153 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: AppIcon(AppIcons.arrowLeft, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('my_purchases'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: WText(
+          'my_purchases'.tr,
+          className: 'text-lg font-semibold',
+          color: textColor,
+        ),
         centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent)))
-              : _purchases.isEmpty
-                  ? Center(
-                      child: Text(
-                        'no_purchases'.tr,
-                        style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 16),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadPurchases,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _purchases.length,
-                        itemBuilder: (context, index) {
-                          final purchase = _purchases[index];
-                          final gift = purchase['gift'] ?? {};
-                          final giftName = gift['name'] ?? 'unknown_gift'.tr;
-                          final points = purchase['pointsSpent'] ?? 0;
-                          final status = purchase['status'] ?? 'PENDING';
-                          final dateStr = purchase['purchaseDate'] ?? '';
-                          
-                          String formattedDate = '';
-                          try {
-                            if (dateStr.isNotEmpty) {
-                              String dStr = dateStr;
-                              if (!dStr.endsWith('Z')) dStr += 'Z';
-                              final date = DateTime.parse(dStr).toUtc().add(const Duration(hours: 5));
-                              formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
-                            }
-                          } catch (e) {
-                            formattedDate = dateStr;
-                          }
+          ? Center(child: WText(_error!, className: 'text-red-500 font-medium'))
+          : _purchases.isEmpty
+          ? Center(
+              child: WText(
+                'no_purchases'.tr,
+                className: 'text-base text-gray-500',
+                color: textColor.withValues(alpha: 0.6),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadPurchases,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _purchases.length,
+                    itemBuilder: (context, index) {
+                      final purchase = _purchases[index];
+                      final gift = purchase['gift'] ?? {};
+                      final giftName = gift['name'] ?? 'unknown_gift'.tr;
+                      final points = purchase['pointsSpent'] ?? 0;
+                      final status = purchase['status'] ?? 'PENDING';
+                      final dateStr = purchase['purchaseDate'] ?? '';
 
-                          final isApproved = status == 'APPROVED' || status == 'DELIVERED';
-                          final statusText = isApproved ? 'status_delivered'.tr : 'status_pending'.tr;
-                          final statusColor = isApproved ? Colors.green : Colors.orangeAccent;
+                      String formattedDate = '';
+                      try {
+                        if (dateStr.isNotEmpty) {
+                          String dStr = dateStr;
+                          if (!dStr.endsWith('Z')) dStr += 'Z';
+                          final date = DateTime.parse(
+                            dStr,
+                          ).toUtc().add(const Duration(hours: 5));
+                          formattedDate = DateFormat(
+                            'dd.MM.yyyy HH:mm',
+                          ).format(date);
+                        }
+                      } catch (e) {
+                        formattedDate = dateStr;
+                      }
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(16),
+                      final isApproved =
+                          status == 'APPROVED' || status == 'DELIVERED';
+                      final statusText = isApproved
+                          ? 'status_delivered'.tr
+                          : 'status_pending'.tr;
+                      final statusColor = isApproved
+                          ? Colors.green
+                          : Colors.orangeAccent;
+
+                      return TwCard(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            WContainer(
+                              className:
+                                  'w-12 h-12 rounded-xl bg-red-600/10 flex items-center justify-center',
+                              child:
+                                  gift['imageUrl'] != null &&
+                                      gift['imageUrl'].toString().isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: CachedNetworkImage(
+                                        imageUrl: ApiService.resolveImageUrl(
+                                          gift['imageUrl'].toString(),
+                                        )!,
+                                        fit: BoxFit.cover,
+                                        width: 48,
+                                        height: 48,
+                                        memCacheWidth: 150,
+                                        memCacheHeight: 150,
+                                        placeholder: (ctx, url) => const Center(
+                                          child: SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.redAccent,
+                                            ),
+                                          ),
+                                        ),
+                                        errorWidget: (ctx, err, st) => AppIcon(
+                                          AppIcons.gift,
+                                          color: theme.colorScheme.primary,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    )
+                                  : AppIcon(
+                                      AppIcons.gift,
+                                      color: theme.colorScheme.primary,
+                                      size: 24,
+                                    ),
                             ),
-                            child: Row(
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  WText(
+                                    giftName,
+                                    className: 'text-sm font-bold',
+                                    color: textColor,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  WText(
+                                    formattedDate,
+                                    className: 'text-xs text-gray-400',
+                                    color: textColor.withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: gift['imageUrl'] != null && gift['imageUrl'].toString().isNotEmpty
-                                        ? DecorationImage(
-                                            image: NetworkImage(ApiService.resolveImageUrl(gift['imageUrl'].toString())!),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
-                                  ),
-                                  child: gift['imageUrl'] == null || gift['imageUrl'].toString().isEmpty
-                                      ? Icon(Icons.card_giftcard, color: theme.colorScheme.primary)
-                                      : null,
+                                WText(
+                                  '-$points ${'points_unit'.tr}',
+                                  className: 'text-sm font-bold text-red-600',
+                                  color: theme.colorScheme.primary,
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        giftName,
-                                        style: TextStyle(
-                                          color: textColor,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        formattedDate,
-                                        style: TextStyle(
-                                          color: textColor.withValues(alpha: 0.5),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '-$points ${'points_unit'.tr}',
-                                      style: TextStyle(
-                                        color: theme.colorScheme.primary,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: statusColor.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        statusText,
-                                        style: TextStyle(
-                                          color: statusColor,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                const SizedBox(height: 4),
+                                TwBadge(text: statusText, color: statusColor),
                               ],
                             ),
-                          );
-                        },
-                      ),
-                    ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }

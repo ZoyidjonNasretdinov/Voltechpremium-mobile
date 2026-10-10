@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter_twind/flutter_twind.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../main.dart';
 import '../../auth/screens/login_screen.dart';
@@ -11,6 +11,7 @@ import 'policy_screen.dart';
 import 'terms_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/api_service.dart';
+import '../../../core/twind/twind_ui.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -63,35 +64,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showDeleteAccountDialog(BuildContext context, ThemeData theme) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
+      builder: (dialogContext) => TwDialogWrapper(
+        title: 'delete_account'.tr,
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(CupertinoIcons.exclamationmark_triangle_fill, color: Colors.redAccent, size: 24),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'delete_account'.tr, 
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+            Row(
+              children: [
+                const AppIcon(
+                  AppIcons.alert,
+                  color: Colors.redAccent,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: WText(
+                    'delete_account_confirm'.tr,
+                    className: 'text-sm leading-relaxed text-gray-400',
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-        content: Text(
-          'delete_account_confirm'.tr,
-          style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('cancel'.tr, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+            child: WText(
+              'cancel'.tr,
+              className: 'text-sm text-gray-400 font-semibold',
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             onPressed: () async {
               Navigator.pop(dialogContext);
@@ -108,7 +118,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                await _apiService.logout();
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
               } else {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +135,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               }
             },
-            child: Text('delete_account'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: WText(
+              'delete_account'.tr,
+              className: 'text-sm font-bold text-white',
+            ),
           ),
         ],
       ),
@@ -134,313 +152,388 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, locale, child) {
         final theme = Theme.of(context);
         final bgColor = theme.scaffoldBackgroundColor;
-        final cardColor = theme.colorScheme.surface;
-        final accentColor = theme.colorScheme.primary;
         final textColor = theme.colorScheme.onSurface;
         final subTextColor = textColor.withValues(alpha: 0.6);
+        final accentColor = theme.colorScheme.primary;
 
         return Scaffold(
           backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: bgColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('settings'.tr, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w600)),
-        centerTitle: true,
-      ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator()) 
-        : RefreshIndicator(
-            onRefresh: _loadProfile,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 580),
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () async {
-                        await Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfileScreen(profileData: _profileData)));
-                        _loadProfile();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 54,
-                              height: 54,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: ClipOval(
-                                child: (_profileData != null &&
-                                        _profileData!['imageUrl'] != null &&
-                                        _profileData!['imageUrl'].toString().isNotEmpty &&
-                                        ApiService.resolveImageUrl(_profileData!['imageUrl']) != null)
-                                    ? Image.network(
-                                        ApiService.resolveImageUrl(_profileData!['imageUrl'])!,
-                                        fit: BoxFit.cover,
-                                        width: 54,
-                                        height: 54,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Icon(Icons.person, color: textColor, size: 30);
-                                        },
-                                      )
-                                    : Icon(Icons.person, color: textColor, size: 30),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${_profileData?['firstName'] ?? ''} ${_profileData?['lastName'] ?? ''}', style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 4),
-                                  Text(_profileData?['phoneNumber'] ?? '', style: TextStyle(color: subTextColor, fontSize: 13)),
-                                  const SizedBox(height: 4),
-                                  Text('${_profileData?['totalBonusPoints'] ?? 0} ${'points_unit'.tr}', style: TextStyle(color: accentColor, fontSize: 14, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.chevron_right, color: subTextColor),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.bell,
-                      title: 'pause_notif'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      trailing: Switch(
-                        value: _notificationsEnabled,
-                        onChanged: _saveNotificationPref,
-                        activeThumbColor: theme.colorScheme.onPrimary,
-                        activeTrackColor: accentColor,
-                        inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
-                        inactiveThumbColor: Colors.grey,
-                      ),
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.slider_horizontal_3,
-                      title: 'general_settings'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditProfileScreen(profileData: _profileData),
-                          ),
-                        );
-                        _loadProfile();
-                      },
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.list_bullet,
-                      title: 'points_history'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TransactionsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    ValueListenableBuilder<ThemeMode>(
-                      valueListenable: themeNotifier,
-                      builder: (context, mode, child) {
-                        final isDark = mode == ThemeMode.dark || (mode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
-                        return _buildSettingsTile(
-                          icon: CupertinoIcons.moon,
-                          title: 'dark_mode'.tr,
-                          textColor: textColor,
-                          subTextColor: subTextColor,
-                          trailing: Switch(
-                            value: isDark,
-                            onChanged: (v) {
-                              setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
-                            },
-                            activeThumbColor: theme.colorScheme.onPrimary,
-                            activeTrackColor: accentColor,
-                            inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
-                            inactiveThumbColor: Colors.grey,
-                          ),
-                        );
-                      }
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.globe,
-                      title: 'language'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      trailing: DropdownButton<String>(
-                        value: localeNotifier.value,
-                        underline: const SizedBox(),
-                        icon: Icon(Icons.arrow_drop_down, color: subTextColor),
-                        dropdownColor: cardColor,
-                        style: TextStyle(color: textColor, fontSize: 14),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            setAppLocale(newValue);
-                          }
-                        },
-                        items: const [
-                          DropdownMenuItem(value: 'uz', child: Text('O\'zbekcha')),
-                          DropdownMenuItem(value: 'ru', child: Text('Русский')),
-                          DropdownMenuItem(value: 'en', child: Text('English')),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.question_circle,
-                      title: 'faq'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const FaqScreen()));
-                      },
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.phone_circle,
-                      title: 'contact_us'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportScreen()));
-                      },
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.info_circle,
-                      title: 'terms_title'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const TermsScreen()));
-                      },
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.person_crop_circle,
-                      title: 'policy_title'.tr,
-                      textColor: textColor,
-                      subTextColor: subTextColor,
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PolicyScreen()));
-                      },
-                    ),
-                    _buildDivider(subTextColor),
-                    _buildSettingsTile(
-                      icon: CupertinoIcons.trash,
-                      title: 'delete_account'.tr,
-                      textColor: Colors.redAccent,
-                      subTextColor: subTextColor,
-                      onTap: () => _showDeleteAccountDialog(context, theme),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () async {
-                  await _apiService.logout();
-                  if (!context.mounted) return;
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.brightness == Brightness.dark
-                      ? Colors.redAccent.withValues(alpha: 0.15)
-                      : Colors.redAccent.withValues(alpha: 0.1),
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    side: theme.brightness == Brightness.dark
-                        ? BorderSide(color: Colors.redAccent.withValues(alpha: 0.3), width: 1)
-                        : BorderSide.none,
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.logout, color: Colors.redAccent, size: 20),
-                    const SizedBox(width: 8),
-                    Text('logout'.tr, style: const TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
+          appBar: AppBar(
+            backgroundColor: bgColor,
+            elevation: 0,
+            leading: IconButton(
+              icon: AppIcon(AppIcons.arrowLeft, color: textColor),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: WText(
+              'settings'.tr,
+              className: 'text-lg font-semibold',
+              color: textColor,
+            ),
+            centerTitle: true,
           ),
-        ),
-      ),
-    ),
-    ),
-    ));
-    },
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: _loadProfile,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 580),
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 16),
+
+                              // User Info Card
+                              TwCard(
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditProfileScreen(
+                                        profileData: _profileData,
+                                      ),
+                                    ),
+                                  );
+                                  _loadProfile();
+                                },
+                                child: Row(
+                                  children: [
+                                    UserAvatar(
+                                      imageUrl: _profileData?['imageUrl'],
+                                      size: 54,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          WText(
+                                            '${_profileData?['firstName'] ?? ''} ${_profileData?['lastName'] ?? ''}',
+                                            className: 'text-base font-bold',
+                                            color: textColor,
+                                          ),
+                                          const SizedBox(height: 3),
+                                          WText(
+                                            _profileData?['phoneNumber'] ?? '',
+                                            className: 'text-xs',
+                                            color: subTextColor,
+                                          ),
+                                          const SizedBox(height: 3),
+                                          WText(
+                                            '${_profileData?['totalBonusPoints'] ?? 0} ${'points_unit'.tr}',
+                                            className: 'text-sm font-bold',
+                                            color: accentColor,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    AppIcon(
+                                      AppIcons.chevronRight,
+                                      color: subTextColor,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // General Settings Group
+                              TwCard(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
+                                child: Column(
+                                  children: [
+                                    _buildSettingsTile(
+                                      icon: AppIcons.clock,
+                                      title: 'pause_notif'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      trailing: Switch(
+                                        value: _notificationsEnabled,
+                                        onChanged: _saveNotificationPref,
+                                        activeThumbColor:
+                                            theme.colorScheme.onPrimary,
+                                        activeTrackColor: accentColor,
+                                        inactiveTrackColor: Colors.grey
+                                            .withValues(alpha: 0.3),
+                                        inactiveThumbColor: Colors.grey,
+                                      ),
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.settings,
+                                      title: 'general_settings'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      onTap: () async {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditProfileScreen(
+                                                  profileData: _profileData,
+                                                ),
+                                          ),
+                                        );
+                                        _loadProfile();
+                                      },
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.history,
+                                      title: 'points_history'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const TransactionsScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Theme & Language Group
+                              TwCard(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
+                                child: Column(
+                                  children: [
+                                    ValueListenableBuilder<ThemeMode>(
+                                      valueListenable: themeNotifier,
+                                      builder: (context, mode, child) {
+                                        final isDark =
+                                            mode == ThemeMode.dark ||
+                                            (mode == ThemeMode.system &&
+                                                MediaQuery.of(
+                                                      context,
+                                                    ).platformBrightness ==
+                                                    Brightness.dark);
+                                        return _buildSettingsTile(
+                                          icon: AppIcons.star,
+                                          title: 'dark_mode'.tr,
+                                          textColor: textColor,
+                                          subTextColor: subTextColor,
+                                          trailing: Switch(
+                                            value: isDark,
+                                            onChanged: (v) {
+                                              setThemeMode(
+                                                v
+                                                    ? ThemeMode.dark
+                                                    : ThemeMode.light,
+                                              );
+                                            },
+                                            activeThumbColor:
+                                                theme.colorScheme.onPrimary,
+                                            activeTrackColor: accentColor,
+                                            inactiveTrackColor: Colors.grey
+                                                .withValues(alpha: 0.3),
+                                            inactiveThumbColor: Colors.grey,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.language,
+                                      title: 'language'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      trailing: DropdownButton<String>(
+                                        value: localeNotifier.value,
+                                        underline: const SizedBox(),
+                                        icon: AppIcon(
+                                          AppIcons.chevronDown,
+                                          color: subTextColor,
+                                          size: 18,
+                                        ),
+                                        dropdownColor:
+                                            theme.colorScheme.surface,
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontSize: 14,
+                                        ),
+                                        onChanged: (String? newValue) {
+                                          if (newValue != null) {
+                                            setAppLocale(newValue);
+                                          }
+                                        },
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: 'uz',
+                                            child: Text('O\'zbekcha'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'ru',
+                                            child: Text('Русский'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'en',
+                                            child: Text('English'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Information & Legal Group
+                              TwCard(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
+                                child: Column(
+                                  children: [
+                                    _buildSettingsTile(
+                                      icon: AppIcons.help,
+                                      title: 'faq'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const FaqScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.phoneCall,
+                                      title: 'contact_us'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const SupportScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.terms,
+                                      title: 'terms_title'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const TermsScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.shield,
+                                      title: 'policy_title'.tr,
+                                      textColor: textColor,
+                                      subTextColor: subTextColor,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const PolicyScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildDivider(subTextColor),
+                                    _buildSettingsTile(
+                                      icon: AppIcons.trash,
+                                      title: 'delete_account'.tr,
+                                      textColor: Colors.redAccent,
+                                      subTextColor: subTextColor,
+                                      onTap: () => _showDeleteAccountDialog(
+                                        context,
+                                        theme,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+
+                              // Logout Button
+                              TwButton(
+                                text: 'logout'.tr,
+                                isOutlined: true,
+                                textColor: Colors.redAccent,
+                                icon: const AppIcon(
+                                  AppIcons.logout,
+                                  color: Colors.redAccent,
+                                  size: 18,
+                                ),
+                                width: double.infinity,
+                                onPressed: () async {
+                                  await _apiService.logout();
+                                  if (!context.mounted) return;
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 32),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+        );
+      },
     );
   }
 
-  Widget _buildSettingsTile({required IconData icon, required String title, required Color textColor, required Color subTextColor, Widget? trailing, VoidCallback? onTap}) {
+  Widget _buildSettingsTile({
+    required dynamic icon,
+    required String title,
+    required Color textColor,
+    required Color subTextColor,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Icon(icon, color: textColor.withValues(alpha: 0.8), size: 22),
-      title: Text(title, style: TextStyle(color: textColor, fontSize: 15)),
-      trailing: trailing ?? Icon(Icons.chevron_right, color: subTextColor, size: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: icon is String
+          ? AppIcon(icon, color: textColor.withValues(alpha: 0.8), size: 22)
+          : Icon(
+              icon as IconData,
+              color: textColor.withValues(alpha: 0.8),
+              size: 22,
+            ),
+      title: WText(title, className: 'text-sm font-medium', color: textColor),
+      trailing:
+          trailing ??
+          AppIcon(AppIcons.chevronRight, color: subTextColor, size: 20),
       onTap: onTap ?? (trailing == null ? () {} : null),
     );
   }
