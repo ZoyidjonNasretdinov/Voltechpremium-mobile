@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_twind/flutter_twind.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../api_service.dart';
@@ -322,25 +323,48 @@ class UserAvatar extends StatelessWidget {
     Widget avatarContent;
     if (resolvedUrl != null && resolvedUrl.isNotEmpty) {
       avatarContent = ClipOval(
-        child: CachedNetworkImage(
-          imageUrl: resolvedUrl,
-          fit: BoxFit.cover,
-          width: size,
-          height: size,
-          memCacheWidth: (size * 3).toInt(),
-          memCacheHeight: (size * 3).toInt(),
-          placeholder: (context, url) => Center(
-            child: SizedBox(
-              width: size * 0.38,
-              height: size * 0.38,
-              child: const CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Color(0xFFE52D27),
+        child: kIsWeb
+            ? Image.network(
+                resolvedUrl,
+                fit: BoxFit.cover,
+                width: size,
+                height: size,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return Center(
+                    child: SizedBox(
+                      width: size * 0.38,
+                      height: size * 0.38,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFE52D27),
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildDefaultAvatar(context),
+              )
+            : CachedNetworkImage(
+                imageUrl: resolvedUrl,
+                fit: BoxFit.cover,
+                width: size,
+                height: size,
+                memCacheWidth: (size * 3).toInt(),
+                memCacheHeight: (size * 3).toInt(),
+                placeholder: (context, url) => Center(
+                  child: SizedBox(
+                    width: size * 0.38,
+                    height: size * 0.38,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFFE52D27),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) =>
+                    _buildDefaultAvatar(context),
               ),
-            ),
-          ),
-          errorWidget: (context, url, error) => _buildDefaultAvatar(context),
-        ),
       );
     } else {
       avatarContent = _buildDefaultAvatar(context);

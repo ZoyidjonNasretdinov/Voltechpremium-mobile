@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_twind/flutter_twind.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -128,42 +129,73 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                             WContainer(
                               className:
                                   'w-12 h-12 rounded-xl bg-red-600/10 flex items-center justify-center',
-                              child:
-                                  gift['imageUrl'] != null &&
-                                      gift['imageUrl'].toString().isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: CachedNetworkImage(
-                                        imageUrl: ApiService.resolveImageUrl(
-                                          gift['imageUrl'].toString(),
-                                        )!,
-                                        fit: BoxFit.cover,
-                                        width: 48,
-                                        height: 48,
-                                        memCacheWidth: 150,
-                                        memCacheHeight: 150,
-                                        placeholder: (ctx, url) => const Center(
-                                          child: SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.redAccent,
+                              child: () {
+                                final rawUrl = gift['imageUrl']?.toString();
+                                final resolved = ApiService.resolveImageUrl(rawUrl);
+                                if (resolved != null && resolved.isNotEmpty) {
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: kIsWeb
+                                        ? Image.network(
+                                            resolved,
+                                            fit: BoxFit.cover,
+                                            width: 48,
+                                            height: 48,
+                                            loadingBuilder: (ctx, child, progress) =>
+                                                progress == null
+                                                    ? child
+                                                    : const Center(
+                                                        child: SizedBox(
+                                                          width: 16,
+                                                          height: 16,
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            color: Colors.redAccent,
+                                                          ),
+                                                        ),
+                                                      ),
+                                            errorBuilder: (ctx, err, st) =>
+                                                AppIcon(
+                                              AppIcons.gift,
+                                              color: theme.colorScheme.primary,
+                                              size: 24,
+                                            ),
+                                          )
+                                        : CachedNetworkImage(
+                                            imageUrl: resolved,
+                                            fit: BoxFit.cover,
+                                            width: 48,
+                                            height: 48,
+                                            memCacheWidth: 150,
+                                            memCacheHeight: 150,
+                                            placeholder: (ctx, url) =>
+                                                const Center(
+                                              child: SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: Colors.redAccent,
+                                                ),
+                                              ),
+                                            ),
+                                            errorWidget: (ctx, err, st) =>
+                                                AppIcon(
+                                              AppIcons.gift,
+                                              color: theme.colorScheme.primary,
+                                              size: 24,
                                             ),
                                           ),
-                                        ),
-                                        errorWidget: (ctx, err, st) => AppIcon(
-                                          AppIcons.gift,
-                                          color: theme.colorScheme.primary,
-                                          size: 24,
-                                        ),
-                                      ),
-                                    )
-                                  : AppIcon(
-                                      AppIcons.gift,
-                                      color: theme.colorScheme.primary,
-                                      size: 24,
-                                    ),
+                                  );
+                                }
+                                return AppIcon(
+                                  AppIcons.gift,
+                                  color: theme.colorScheme.primary,
+                                  size: 24,
+                                );
+                              }(),
                             ),
                             const SizedBox(width: 14),
                             Expanded(

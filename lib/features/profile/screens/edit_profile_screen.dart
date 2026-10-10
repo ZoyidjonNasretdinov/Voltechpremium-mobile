@@ -1,5 +1,5 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_twind/flutter_twind.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -64,16 +64,110 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickAndUploadImage() async {
+  Future<void> _showImageSourceDialog() async {
+    if (_isUploadingImage) return;
+
+    if (kIsWeb) {
+      _pickAndUploadImage(ImageSource.gallery);
+      return;
+    }
+
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1E1F25) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: WText(
+                  'choose_photo'.tr,
+                  className: 'text-sm font-semibold',
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 6),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library_rounded,
+                  color: Color(0xFFE52D27),
+                ),
+                title: Text(
+                  'gallery'.tr,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.camera_alt_rounded,
+                  color: Color(0xFFE52D27),
+                ),
+                title: Text(
+                  'camera'.tr,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source != null) {
+      _pickAndUploadImage(source);
+    }
+  }
+
+  Future<void> _pickAndUploadImage([
+    ImageSource source = ImageSource.gallery,
+  ]) async {
     try {
       final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
       );
       if (image == null) return;
 
       final bytes = await image.readAsBytes();
-      final filename = image.name.isNotEmpty ? image.name : 'avatar.jpg';
+      if (bytes.isEmpty) return;
+
+      var filename = image.name.isNotEmpty ? image.name : 'avatar.jpg';
+      final lower = filename.toLowerCase();
+      if (!lower.endsWith('.png') &&
+          !lower.endsWith('.webp') &&
+          !lower.endsWith('.jpg') &&
+          !lower.endsWith('.jpeg')) {
+        filename = 'avatar.jpg';
+      }
 
       setState(() {
         _localAvatarBytes = bytes;
@@ -131,6 +225,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    if (_isUploadingImage) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('uploading_image'.tr),
+          backgroundColor: Colors.orangeAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
 
@@ -222,93 +327,128 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       bottom: 0,
                       child: Stack(
                         children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: ClipOval(
-                                child: Container(
-                                  color: accentColor.withValues(alpha: 0.1),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    fit: StackFit.expand,
-                                    children: [
-                                      if (_localAvatarBytes != null)
-                                        Image.memory(
-                                          _localAvatarBytes!,
-                                          fit: BoxFit.cover,
-                                          width: 112,
-                                          height: 112,
-                                        )
-                                      else if (_currentImageUrl != null &&
-                                          _currentImageUrl!.isNotEmpty &&
-                                          ApiService.resolveImageUrl(
-                                                _currentImageUrl,
-                                              ) !=
-                                              null)
-                                        CachedNetworkImage(
-                                          imageUrl: ApiService.resolveImageUrl(
-                                            _currentImageUrl,
-                                          )!,
-                                          fit: BoxFit.cover,
-                                          width: 112,
-                                          height: 112,
-                                          memCacheWidth: 300,
-                                          memCacheHeight: 300,
-                                          placeholder: (context, url) =>
-                                              const Center(
-                                                child: SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                  child:
-                                                      CircularProgressIndicator(
+                          GestureDetector(
+                            onTap: _isUploadingImage
+                                ? null
+                                : _showImageSourceDialog,
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: bgColor,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: ClipOval(
+                                  child: Container(
+                                    color: accentColor.withValues(alpha: 0.1),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      fit: StackFit.expand,
+                                      children: [
+                                        if (_localAvatarBytes != null)
+                                          Image.memory(
+                                            _localAvatarBytes!,
+                                            fit: BoxFit.cover,
+                                            width: 112,
+                                            height: 112,
+                                          )
+                                        else if (_currentImageUrl != null &&
+                                            _currentImageUrl!.isNotEmpty &&
+                                            ApiService.resolveImageUrl(
+                                                  _currentImageUrl,
+                                                ) !=
+                                                null)
+                                          (kIsWeb
+                                              ? Image.network(
+                                                  ApiService.resolveImageUrl(
+                                                    _currentImageUrl,
+                                                  )!,
+                                                  fit: BoxFit.cover,
+                                                  width: 112,
+                                                  height: 112,
+                                                  loadingBuilder: (ctx, child, progress) =>
+                                                      progress == null
+                                                          ? child
+                                                          : const Center(
+                                                              child: SizedBox(
+                                                                width: 24,
+                                                                height: 24,
+                                                                child: CircularProgressIndicator(
+                                                                  strokeWidth: 2,
+                                                                  color: Colors.redAccent,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                  errorBuilder: (ctx, err, st) =>
+                                                      Icon(
+                                                    Icons.person_rounded,
+                                                    color: accentColor
+                                                        .withValues(alpha: 0.7),
+                                                    size: 70,
+                                                  ),
+                                                )
+                                              : CachedNetworkImage(
+                                                  imageUrl:
+                                                      ApiService.resolveImageUrl(
+                                                    _currentImageUrl,
+                                                  )!,
+                                                  fit: BoxFit.cover,
+                                                  width: 112,
+                                                  height: 112,
+                                                  memCacheWidth: 300,
+                                                  memCacheHeight: 300,
+                                                  placeholder: (context, url) =>
+                                                      const Center(
+                                                    child: SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child:
+                                                          CircularProgressIndicator(
                                                         strokeWidth: 2,
                                                         color: Colors.redAccent,
                                                       ),
-                                                ),
-                                              ),
-                                          errorWidget:
-                                              (context, url, error) => Icon(
-                                                Icons.person_rounded,
-                                                color: accentColor.withValues(
-                                                  alpha: 0.7,
-                                                ),
-                                                size: 70,
-                                              ),
-                                        )
-                                      else
-                                        Icon(
-                                          Icons.person_rounded,
-                                          color: accentColor.withValues(
-                                            alpha: 0.7,
+                                                    ),
+                                                  ),
+                                                  errorWidget: (context, url,
+                                                          error) =>
+                                                      Icon(
+                                                    Icons.person_rounded,
+                                                    color: accentColor
+                                                        .withValues(alpha: 0.7),
+                                                    size: 70,
+                                                  ),
+                                                ))
+                                        else
+                                          Icon(
+                                            Icons.person_rounded,
+                                            color: accentColor.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                            size: 70,
                                           ),
-                                          size: 70,
-                                        ),
-                                      if (_isUploadingImage)
-                                        Container(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.45,
-                                          ),
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              color: Colors.white,
+                                        if (_isUploadingImage)
+                                          Container(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.45,
+                                            ),
+                                            child: const Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color: Colors.white,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -320,7 +460,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             child: GestureDetector(
                               onTap: _isUploadingImage
                                   ? null
-                                  : _pickAndUploadImage,
+                                  : _showImageSourceDialog,
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(

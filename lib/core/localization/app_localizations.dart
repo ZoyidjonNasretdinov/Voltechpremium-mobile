@@ -199,6 +199,10 @@ class AppLocalizations {
       'logout_account': 'Hisobdan chiqish',
       'no_activity': 'Hozircha faollik yo\'q',
       'image_uploaded': 'Rasm yuklandi',
+      'gallery': 'Galereya',
+      'camera': 'Kamera',
+      'choose_photo': 'Rasm tanlang',
+      'uploading_image': 'Rasm yuklanmoqda...',
       'profile_updated': 'Profil yangilandi',
       'delete_account_confirm':
           'Haqiqatan ham hisobingizni o\'chirmoqchimisiz? Barcha ma\'lumotlaringiz, to\'plangan ballaringiz va skanerlash tarixi butunlay o\'chiriladi. Bu amalni ortga qaytarib bo\'lmaydi.',
@@ -439,6 +443,10 @@ class AppLocalizations {
       'logout_account': 'Выйти из аккаунта',
       'no_activity': 'Пока нет активности',
       'image_uploaded': 'Изображение загружено',
+      'gallery': 'Галерея',
+      'camera': 'Камера',
+      'choose_photo': 'Выберите фото',
+      'uploading_image': 'Загрузка изображения...',
       'profile_updated': 'Профиль обновлен',
       'delete_account_confirm':
           'Вы действительно хотите удалить свой аккаунт? Все ваши личные данные, накопленные баллы и история будут безвозвратно удалены. Это действие необратимо.',
@@ -675,6 +683,10 @@ class AppLocalizations {
       'logout_account': 'Log out',
       'no_activity': 'No activity yet',
       'image_uploaded': 'Image uploaded',
+      'gallery': 'Gallery',
+      'camera': 'Camera',
+      'choose_photo': 'Choose photo',
+      'uploading_image': 'Uploading image...',
       'profile_updated': 'Profile updated',
       'delete_account_confirm':
           'Are you sure you want to delete your account? All your personal data, accumulated points, and scan history will be permanently erased. This action cannot be undone.',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_twind/flutter_twind.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -225,45 +226,18 @@ class _GiftScreenState extends State<GiftScreen> {
                               color: isDark
                                   ? Colors.white.withValues(alpha: 0.05)
                                   : Colors.grey.shade200,
-                              child: (imageUrl != null &&
-                                      imageUrl.toString().isNotEmpty &&
-                                      ApiService.resolveImageUrl(
-                                            imageUrl.toString(),
-                                          ) !=
-                                          null)
-                                  ? CachedNetworkImage(
-                                      imageUrl: ApiService.resolveImageUrl(
-                                        imageUrl.toString(),
-                                      )!,
-                                      fit: BoxFit.cover,
-                                      memCacheWidth: 200,
-                                      memCacheHeight: 200,
-                                      placeholder: (ctx, url) => const Center(
-                                        child: SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: primaryRed,
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: (ctx, url, err) =>
-                                          const Center(
-                                            child: AppIcon(
-                                              AppIcons.gift,
-                                              size: 24,
-                                              color: primaryRed,
-                                            ),
-                                          ),
-                                    )
-                                  : const Center(
-                                      child: AppIcon(
-                                        AppIcons.gift,
-                                        size: 24,
-                                        color: primaryRed,
-                                      ),
-                                    ),
+                              child: _buildGiftImageWidget(
+                                rawUrl: imageUrl?.toString(),
+                                fit: BoxFit.cover,
+                                memCacheWidth: 200,
+                                memCacheHeight: 200,
+                                indicatorColor: primaryRed,
+                                placeholderWidget: const AppIcon(
+                                  AppIcons.gift,
+                                  size: 24,
+                                  color: primaryRed,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -571,6 +545,60 @@ class _GiftScreenState extends State<GiftScreen> {
         _isPurchasing = false;
       }
     }
+  }
+
+  Widget _buildGiftImageWidget({
+    required String? rawUrl,
+    required BoxFit fit,
+    int? memCacheWidth,
+    int? memCacheHeight,
+    required Color indicatorColor,
+    required Widget placeholderWidget,
+  }) {
+    final resolved = ApiService.resolveImageUrl(rawUrl?.toString());
+    if (resolved == null || resolved.isEmpty) {
+      return Center(child: placeholderWidget);
+    }
+
+    if (kIsWeb) {
+      return Image.network(
+        resolved,
+        fit: fit,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: indicatorColor,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) =>
+            Center(child: placeholderWidget),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: resolved,
+      fit: fit,
+      memCacheWidth: memCacheWidth ?? 400,
+      memCacheHeight: memCacheHeight ?? 400,
+      placeholder: (context, url) => Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: indicatorColor,
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => Center(child: placeholderWidget),
+    );
   }
 
   Widget _buildGiftPlaceholderIcon(Color accentColor) {
@@ -983,52 +1011,16 @@ class _GiftScreenState extends State<GiftScreen> {
                                                     ],
                                             ),
                                           ),
-                                          child:
-                                              (imageUrl != null &&
-                                                  imageUrl.toString().isNotEmpty &&
-                                                  ApiService.resolveImageUrl(
-                                                        imageUrl.toString(),
-                                                      ) !=
-                                                      null)
-                                              ? CachedNetworkImage(
-                                                  imageUrl:
-                                                      ApiService.resolveImageUrl(
-                                                        imageUrl.toString(),
-                                                      )!,
-                                                  fit: BoxFit.cover,
-                                                  memCacheWidth: 400,
-                                                  memCacheHeight: 400,
-                                                  placeholder:
-                                                      (context, url) => Center(
-                                                        child: SizedBox(
-                                                          width: 24,
-                                                          height: 24,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                                strokeWidth: 2,
-                                                                color: accentColor
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.5,
-                                                                    ),
-                                                              ),
-                                                        ),
-                                                      ),
-                                                  errorWidget:
-                                                      (context, url, error) =>
-                                                          Center(
-                                                            child:
-                                                                _buildGiftPlaceholderIcon(
-                                                                  accentColor,
-                                                                ),
-                                                          ),
-                                                )
-                                              : Center(
-                                                  child:
-                                                      _buildGiftPlaceholderIcon(
-                                                        accentColor,
-                                                      ),
-                                                ),
+                                          child: _buildGiftImageWidget(
+                                            rawUrl: imageUrl?.toString(),
+                                            fit: BoxFit.cover,
+                                            memCacheWidth: 400,
+                                            memCacheHeight: 400,
+                                            indicatorColor:
+                                                accentColor.withValues(alpha: 0.5),
+                                            placeholderWidget:
+                                                _buildGiftPlaceholderIcon(accentColor),
+                                          ),
                                         ),
 
                                         // Top brand badge

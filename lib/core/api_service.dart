@@ -20,12 +20,29 @@ class ApiService {
   final _secureStorage = const FlutterSecureStorage();
 
   static String? resolveImageUrl(String? path) {
-    if (path == null || path.trim().isEmpty) return null;
+    if (path == null) return null;
     final trimmed = path.trim();
+    if (trimmed.isEmpty) return null;
+
+    // Handle Google Cloud Storage URLs: proxy them through our backend server
+    // to bypass CORS limitations on Web and ensure reliable delivery worldwide.
+    if (trimmed.contains('storage.googleapis.com') ||
+        trimmed.contains('googleapis.com')) {
+      final uri = Uri.tryParse(trimmed);
+      final fileName = uri != null && uri.pathSegments.isNotEmpty
+          ? uri.pathSegments.last
+          : trimmed.split('?').first.split('/').last;
+      if (fileName.isNotEmpty) {
+        return '$baseUrl/files/download/$fileName';
+      }
+    }
+
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
-    return '$baseUrl/files/download/$trimmed';
+
+    final cleanFileName = trimmed.split('?').first.split('/').last;
+    return '$baseUrl/files/download/$cleanFileName';
   }
 
   Future<String?> getToken() async =>
@@ -857,7 +874,8 @@ class ApiService {
         ),
       );
 
-      var streamedResponse = await _client.send(request);
+      var streamedResponse =
+          await _client.send(request).timeout(_requestTimeout);
       var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 401 || response.statusCode == 403) {
@@ -878,7 +896,8 @@ class ApiService {
                 contentType: contentType,
               ),
             );
-            streamedResponse = await _client.send(newRequest);
+            streamedResponse =
+                await _client.send(newRequest).timeout(_requestTimeout);
             response = await http.Response.fromStream(streamedResponse);
           }
         } else {
